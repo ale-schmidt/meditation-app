@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="title">Sesión de Meditación</title>
+  <meta name="description"
+    content="Aplicación de temporizador para sesiones de meditación de una hora con sonidos programados." />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23a78bfa%22 /></svg>"
+    type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TOP BAR DE AUTENTICACIÓN                -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="auth-bar">
+    <button id="lang-toggle" class="lang-toggle" data-i18n="langToggle">Switch to English</button>
+
+    <!-- Cuando NO está logueado -->
+    <div id="auth-buttons" class="auth-buttons">
+      <button id="btn-login" class="btn-auth btn-login-outline" data-i18n="btnLogin">Log In</button>
+      <button id="btn-signup" class="btn-auth btn-signup-fill" data-i18n="btnSignup">Sign In</button>
+    </div>
+
+    <!-- Cuando SÍ está logueado -->
+    <button id="nav-toggle-stats" class="btn-nav hidden">
+      <span class="nav-icon">📊</span>
+      <span class="nav-text" data-i18n="navStats">Estadísticas</span>
+    </button>
+    <div id="user-menu" class="user-menu hidden">
+      <button id="user-menu-btn" class="user-menu-btn">
+        <span class="user-avatar">🧘</span>
+        <span id="user-greeting">Hola</span>
+        <span class="arrow">▾</span>
+      </button>
+      <div id="user-dropdown" class="user-dropdown hidden">
+        <button id="btn-send-email-stats" class="dropdown-item">✉️ <span data-i18n="btnSendEmailStats">Enviar
+            estadísticas</span></button>
+        <div class="dropdown-divider"></div>
+        <button id="btn-admin-settings-trigger" class="dropdown-item hidden">⚙️ <span
+            data-i18n="btnAdminSettings">Configuración</span></button>
+        <div id="divider-admin-settings" class="dropdown-divider hidden"></div>
+        <button id="btn-change-password-trigger" class="dropdown-item">🔑 <span data-i18n="btnChangePassword">Cambiar
+            contraseña</span></button>
+        <div class="dropdown-divider"></div>
+        <button id="btn-logout" class="dropdown-item">🚪 <span data-i18n="btnLogout">Cerrar sesión</span></button>
+        <button id="btn-delete-account" class="dropdown-item dropdown-danger">🗑️ <span
+            data-i18n="btnDeleteAccount">Eliminar cuenta</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- CONTENIDO PRINCIPAL                      -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECCIÓN: HOME                           -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="section-home" class="container">
+    <header>
+      <h1 data-i18n="title">Sesión de Meditación</h1>
+      <p class="subtitle" data-i18n="subtitle">Sesión de meditación de 1 Hora</p>
+      <p class="description" data-i18n="description">
+        Esta aplicación está diseñada para meditar durante 1 hora. Todas las
+        sesiones incluyen un gong al inicio (minuto 0) y otro al final (minuto
+        60). Puedes configurar señales intermedias para mantener la atención.
+        Además, puedes activar un doble "tick" en el minuto 50 para practicar
+        Metta (amor benevolente) en los últimos 10 minutos.
+      </p>
+    </header>
+
+    <main>
+      <div class="timer-display" id="timer-display">60:00</div>
+
+      <div class="controls-card">
+        <h2 data-i18n="soundConfig">Configuración de Sonidos</h2>
+        <p class="help-text" data-i18n="soundAHelp">
+          El Sonido A (gong principal) se reproducirá al inicio (min 0) y al
+          final (min 60).
+        </p>
+
+        <div class="control-group">
+          <label for="sound-b-select" data-i18n="soundBLabel">Señales Intermedias (gong grave):</label>
+          <select id="sound-b-select">
+            <option value="3" data-i18n="opt3">3 señales (cada 15 min)</option>
+            <option value="2" data-i18n="opt2">2 señales (cada 20 min)</option>
+            <option value="1" data-i18n="opt1">1 señal (a la media hora)</option>
+            <option value="0" data-i18n="opt0">Sin señales</option>
+            <option value="random" data-i18n="optRandom">🎲 Aleatorio (entre 3 y 5 señales en tiempos random)</option>
+          </select>
+        </div>
+
+        <div class="control-group checkbox-group">
+          <input type="checkbox" id="sound-c-check" checked />
+          <label for="sound-c-check" data-i18n="soundCLabel">Habilitar doble "tick" (minuto 50) para practicar
+            Metta</label>
+        </div>
+      </div>
+
+      <div class="preview-card">
+        <h3 data-i18n="previewTitle">Previsualizar Sonidos</h3>
+        <div class="preview-buttons">
+          <button class="btn-preview" onclick="previewSound('soundA')" data-i18n="btnSoundA">🎵 Gong
+            (Inicio/Fin)</button>
+          <button class="btn-preview" onclick="previewSound('soundB')" data-i18n="btnSoundB">🎵 Gong (Señal)</button>
+          <button class="btn-preview" onclick="previewSound('soundC')" data-i18n="btnSoundC">🎵 Doble Tick
+            (Metta)</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button id="start-btn" class="btn-primary" data-i18n="btnStart">Comenzar Sesión</button>
+        <button id="pause-btn" class="btn-warning hidden" data-i18n="btnPause">Pausar</button>
+        <button id="stop-btn" class="btn-secondary hidden" data-i18n="btnStop">Detener Sesión</button>
+      </div>
+    </main>
+
+    <footer>
+      <p id="status-msg" data-i18n="statusReady">
+        Lista para comenzar. La pantalla se mantendrá encendida durante la sesión.
+      </p>
+    </footer>
+  </div>
+
+  <!-- Audios -->
+  <audio id="soundA" src="sounds/sound-a.mp3" preload="auto"></audio>
+  <audio id="soundB" src="sounds/sound-b.mp3" preload="auto"></audio>
+  <audio id="soundC" src="sounds/sound-c.mp3" preload="auto"></audio>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: LOG IN                           -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-login" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-login-title">
+    <div class="modal-box">
+      <button class="modal-close" id="close-login" aria-label="Cerrar">✕</button>
+      <div class="modal-icon">🧘</div>
+      <h2 id="modal-login-title" data-i18n="modalLoginTitle">Iniciar Sesión</h2>
+      <form id="form-login" novalidate>
+        <div class="form-group">
+          <label for="login-email" data-i18n="labelEmail">Correo electrónico</label>
+          <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password" data-i18n="labelPassword">Contraseña</label>
+          <div class="input-password-wrap">
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+              required />
+            <button type="button" class="toggle-password" data-target="login-password">👁</button>
+          </div>
+        </div>
+        <p id="login-error" class="form-error hidden"></p>
+        <button type="submit" id="btn-login-submit" class="btn-modal-primary" data-i18n="btnLoginSubmit">Iniciar
+          Sesión</button>
+      </form>
+      <p class="modal-switch"><span id="modal-login-switch-text" data-i18n="loginSwitchText">¿No tenés cuenta?</span>
+        <button class="link-btn" id="switch-to-signup" data-i18n="switchToSignup">Registrate aquí</button></p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: SIGN IN (REGISTRO)               -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-signup" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-signup-title">
+    <div class="modal-box">
+      <button class="modal-close" id="close-signup" aria-label="Cerrar">✕</button>
+      <div class="modal-icon">✨</div>
+      <h2 id="modal-signup-title" data-i18n="modalSignupTitle">Crear Cuenta</h2>
+      <form id="form-signup" novalidate>
+        <div class="form-group">
+          <label for="signup-name" data-i18n="labelFullName">Nombre completo</label>
+          <input type="text" id="signup-name" placeholder="Alejandra García" data-i18n-placeholder="placeholderFullName"
+            autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="signup-email" data-i18n="labelEmail">Correo electrónico</label>
+          <input type="email" id="signup-email" placeholder="tu@email.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label for="signup-password" data-i18n="labelNewPassword">Contraseña nueva</label>
+          <div class="input-password-wrap">
+            <input type="password" id="signup-password" placeholder="••••••••" autocomplete="new-password" required />
+            <button type="button" class="toggle-password" data-target="signup-password">👁</button>
+          </div>
+          <!-- Indicador de fortaleza -->
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div id="strength-fill" class="strength-fill"></div>
+            </div>
+            <ul class="strength-rules">
+              <li id="rule-length" class="rule" data-i18n-rule="ruleLength">✗ Mínimo 6 caracteres</li>
+              <li id="rule-upper" class="rule" data-i18n-rule="ruleUpper">✗ Al menos una mayúscula</li>
+              <li id="rule-number" class="rule" data-i18n-rule="ruleNumber">✗ Al menos un número</li>
+              <li id="rule-symbol" class="rule" data-i18n-rule="ruleSymbol">✗ Al menos un símbolo (!, @, #…)</li>
+            </ul>
+          </div>
+        </div>
+        <p id="signup-error" class="form-error hidden"></p>
+        <button type="submit" id="btn-signup-submit" class="btn-modal-primary" data-i18n="btnSignupSubmit">Crear Cuenta
+          y Recibir Código</button>
+      </form>
+      <p class="modal-switch"><span id="modal-signup-switch-text" data-i18n="signupSwitchText">¿Ya tenés cuenta?</span>
+        <button class="link-btn" id="switch-to-login" data-i18n="switchToLogin">Iniciá sesión aquí</button></p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: VERIFICACIÓN DE CÓDIGO           -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-verify" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-verify-title">
+    <div class="modal-box">
+      <div class="modal-icon">📧</div>
+      <h2 id="modal-verify-title" data-i18n="modalVerifyTitle">Verificá tu correo</h2>
+      <p class="modal-subtitle" id="verify-email-hint"><span data-i18n="verifyEmailHint">Te enviamos un código de 4
+          dígitos a</span> <strong id="verify-email-display"></strong></p>
+      <form id="form-verify" novalidate>
+        <div class="code-input-group">
+          <input type="text" id="code-1" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input type="text" id="code-2" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input type="text" id="code-3" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+          <input type="text" id="code-4" class="code-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" />
+        </div>
+        <p id="verify-error" class="form-error hidden"></p>
+        <div id="verify-countdown" class="countdown-timer"><span data-i18n="countdownLabel">⏳ El código expira en</span>
+          <span id="countdown-seconds">5:00</span></div>
+        <button type="submit" id="btn-verify-submit" class="btn-modal-primary" data-i18n="btnVerifySubmit">Verificar
+          Código</button>
+        <button type="button" id="btn-resend" class="btn-resend" data-i18n="btnResend">Reenviar código</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: MEDITACIÓN COMPLETADA            -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-meditation-done" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-done-title">
+    <div class="modal-box modal-box-small">
+      <div class="modal-icon">🌸</div>
+      <h2 id="modal-done-title" data-i18n="modalDoneTitle">¿Marcar como completada?</h2>
+      <p class="modal-subtitle" data-i18n="modalDoneSubtitle">¿Querés registrar esta meditación como completada?</p>
+      <div class="modal-confirm-buttons">
+        <button id="btn-confirm-yes" class="btn-confirm-yes" data-i18n="btnYes">Sí, registrar</button>
+        <button id="btn-confirm-no" class="btn-confirm-no" data-i18n="btnNo">No</button>
+      </div>
+      <p id="meditation-saved-msg" class="form-success hidden" data-i18n="meditationSaved">✅ ¡Meditación registrada!</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: CONFIRMAR ELIMINAR CUENTA        -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-delete-account" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-delete-title">
+    <div class="modal-box modal-box-small">
+      <div class="modal-icon">⚠️</div>
+      <h2 id="modal-delete-title" data-i18n="modalDeleteTitle">¿Eliminar cuenta?</h2>
+      <p class="modal-subtitle" data-i18n="modalDeleteSubtitle">Esta acción es permanente y eliminará todos tus datos y
+        meditaciones.</p>
+      <p id="delete-error" class="form-error hidden"></p>
+      <div class="modal-confirm-buttons">
+        <button id="btn-delete-yes" class="btn-danger" data-i18n="btnDeleteYes">Sí, eliminar</button>
+        <button id="btn-delete-no" class="btn-confirm-no" data-i18n="btnDeleteNo">No, cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: CONFIRMAR ELIMINAR SESIÓN        -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-delete-session" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-delete-session-title">
+    <div class="modal-box modal-box-small">
+      <div class="modal-icon">🗑️</div>
+      <h2 id="modal-delete-session-title" data-i18n="modalDeleteSessionTitle">¿Eliminar registro?</h2>
+      <p class="modal-subtitle" data-i18n="modalDeleteSessionSubtitle">¿Estás seguro de que querés borrar este registro
+        de meditación de la base de datos?</p>
+      <p id="delete-session-error" class="form-error hidden"></p>
+      <div class="modal-confirm-buttons">
+        <button id="btn-delete-session-yes" class="btn-danger" data-i18n="btnDeleteYes">Sí, eliminar</button>
+        <button id="btn-delete-session-no" class="btn-confirm-no" data-i18n="btnDeleteNo">No, cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: CAMBIAR CONTRASEÑA               -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-change-password" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-change-password-title">
+    <div class="modal-box">
+      <button class="modal-close" id="close-change-password" aria-label="Cerrar">✕</button>
+      <div class="modal-icon">🔑</div>
+      <h2 id="modal-change-password-title" data-i18n="modalChangePasswordTitle">Cambiar Contraseña</h2>
+      <form id="form-change-password" novalidate>
+        <div class="form-group">
+          <label for="change-pwd-current" data-i18n="labelCurrentPassword">Contraseña actual</label>
+          <div class="input-password-wrap">
+            <input type="password" id="change-pwd-current" placeholder="••••••••" autocomplete="current-password"
+              required />
+            <button type="button" class="toggle-password" data-target="change-pwd-current">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="change-pwd-new" data-i18n="labelNewPasswordChange">Contraseña nueva</label>
+          <div class="input-password-wrap">
+            <input type="password" id="change-pwd-new" placeholder="••••••••" autocomplete="new-password" required />
+            <button type="button" class="toggle-password" data-target="change-pwd-new">👁</button>
+          </div>
+          <!-- Indicador de fortaleza -->
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div id="change-strength-fill" class="strength-fill"></div>
+            </div>
+            <ul class="strength-rules">
+              <li id="change-rule-length" class="rule" data-i18n-rule="ruleLength">✗ Mínimo 6 caracteres</li>
+              <li id="change-rule-upper" class="rule" data-i18n-rule="ruleUpper">✗ Al menos una mayúscula</li>
+              <li id="change-rule-number" class="rule" data-i18n-rule="ruleNumber">✗ Al menos un número</li>
+              <li id="change-rule-symbol" class="rule" data-i18n-rule="ruleSymbol">✗ Al menos un símbolo (!, @, #…)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="change-pwd-confirm" data-i18n="labelConfirmPassword">Confirmar contraseña nueva</label>
+          <div class="input-password-wrap">
+            <input type="password" id="change-pwd-confirm" placeholder="••••••••" autocomplete="new-password"
+              required />
+            <button type="button" class="toggle-password" data-target="change-pwd-confirm">👁</button>
+          </div>
+        </div>
+        <p id="change-pwd-error" class="form-error hidden"></p>
+        <p id="change-pwd-success" class="form-success hidden"></p>
+        <button type="submit" id="btn-change-password-submit" class="btn-modal-primary"
+          data-i18n="btnChangePasswordSubmit">Actualizar Contraseña</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: ESTADO DE ENVÍO DE EMAIL         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-email-status" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-email-status-title">
+    <div class="modal-box modal-box-small">
+      <button class="modal-close" id="close-email-status" aria-label="Cerrar">✕</button>
+      <div class="modal-icon" id="modal-email-status-icon">✉️</div>
+      <h2 id="modal-email-status-title" data-i18n="modalEmailStatusTitle">Estadísticas por correo</h2>
+      <p class="modal-subtitle" id="modal-email-status-message"></p>
+      <div class="modal-confirm-buttons" style="justify-content: center; margin-top: 24px;">
+        <button id="btn-email-status-ok" class="btn-modal-primary" style="min-width: 140px;"
+          data-i18n="btnOk">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- MODAL: CONFIGURACIÓN DE ADMINISTRADOR    -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="modal-admin-settings" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-admin-settings-title">
+    <div class="modal-box modal-box-admin">
+      <button class="modal-close" id="close-admin-settings" aria-label="Cerrar">✕</button>
+      <div class="modal-icon">⚙️</div>
+      <h2 id="modal-admin-settings-title" data-i18n="modalAdminSettingsTitle">Configuración de Administrador</h2>
+      <form id="form-admin-settings" novalidate>
+        <div class="form-group">
+          <label for="admin-email-user" data-i18n="labelAdminEmailUser">Correo emisor</label>
+          <input type="email" id="admin-email-user" placeholder="ejemplo@gmail.com" required />
+        </div>
+        <div class="form-group">
+          <label for="admin-email-pass" data-i18n="labelAdminEmailPass">Contraseña de aplicación</label>
+          <div class="input-password-wrap">
+            <input type="password" id="admin-email-pass" placeholder="••••••••••••••••" required />
+            <button type="button" class="toggle-password" data-target="admin-email-pass">👁</button>
+          </div>
+        </div>
+        <p id="admin-settings-error" class="form-error hidden"></p>
+        <p id="admin-settings-success" class="form-success hidden"></p>
+        <button type="submit" id="btn-admin-settings-submit" class="btn-modal-primary"
+          data-i18n="btnAdminSettingsSubmit">Guardar Configuración</button>
+      </form>
+
+      <!-- Panel de usuarios -->
+      <div class="admin-users-section">
+        <h3 class="admin-users-title">👥 <span data-i18n="adminUsersTitle">Usuarios Registrados</span></h3>
+        <div style="overflow-x: auto;">
+          <table class="admin-users-table">
+            <thead>
+              <tr>
+                <th data-i18n="thName">Nombre completo</th>
+                <th data-i18n="thEmail">Email</th>
+                <th data-i18n="thRole">Rol</th>
+                <th data-i18n="thActions">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <!-- Cargado dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECCIÓN: ESTADÍSTICAS                   -->
+  <!-- ═══════════════════════════════════════ -->
+  <div id="section-stats" class="container hidden">
+    <header>
+      <h1 data-i18n="modalStatsTitle">Mis Estadísticas</h1>
+    </header>
+
+    <div id="stats-loading" class="stats-loading" data-i18n="statsLoading">Cargando...</div>
+    <div id="stats-content" class="stats-content hidden">
+      <!-- Grilla de Tarjetas de Indicadores (4 tarjetas) -->
+      <div class="stats-grid stats-grid-four">
+        <div class="stat-card">
+          <span class="stat-number" id="stat-hours">0s</span>
+          <span class="stat-label" data-i18n="statHours">Tiempo Total</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stat-streak">0</span>
+          <span class="stat-label" data-i18n="statStreak">Racha (Días)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stat-complete">0</span>
+          <span class="stat-label" data-i18n="statComplete">Completas (1h)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stat-partial">0</span>
+          <span class="stat-label" data-i18n="statPartial">Parciales</span>
+        </div>
+      </div>
+
+      <!-- Desglose por Periodos (Semana, Mes, Año) -->
+      <div class="period-breakdown-card">
+        <h4 class="tracker-title" data-i18n="periodTitle">Resumen Temporal</h4>
+        <div class="period-grid">
+          <div class="period-item">
+            <span class="period-label" data-i18n="periodWeek">Esta Semana</span>
+            <span class="period-value" id="period-week-stats">0 ses (0s)</span>
+          </div>
+          <div class="period-item">
+            <span class="period-label" data-i18n="periodMonth">Este Mes</span>
+            <span class="period-value" id="period-month-stats">0 ses (0s)</span>
+          </div>
+          <div class="period-item">
+            <span class="period-label" data-i18n="periodYear">Este Año</span>
+            <span class="period-value" id="period-year-stats">0 ses (0s)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rastreador de Hábito Semanal -->
+      <div class="weekly-tracker-card">
+        <h4 class="tracker-title" data-i18n="weeklyTrackerTitle">Rendimiento esta semana</h4>
+        <div class="weekly-days" id="weekly-days-container">
+          <!-- Días de la semana generados dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Selectores de pestaña de visualización -->
+      <div class="stats-view-toggle">
+        <button id="btn-view-list" class="view-toggle-btn active" data-i18n="btnViewList">📋 Historial</button>
+        <button id="btn-view-heatmap" class="view-toggle-btn" data-i18n="btnViewHeatmap">📅 Mensual</button>
+        <button id="btn-view-yearly" class="view-toggle-btn" data-i18n="btnViewYearly">📈 Anual</button>
+      </div>
+
+      <!-- Panel 1: Lista Histórica -->
+      <div id="stats-panel-list" class="stats-panel-view">
+        <div class="history-header">
+          <h4 class="history-title" data-i18n="historyTitle" style="margin: 0;">Historial de Meditaciones</h4>
+          <div class="calendar-filters" style="margin: 0; padding: 0;">
+            <div class="checkbox-group filter-checkbox">
+              <input type="checkbox" id="history-filter-complete" checked />
+              <label for="history-filter-complete" data-i18n="filterComplete">Completas (1h)</label>
+            </div>
+            <div class="checkbox-group filter-checkbox">
+              <input type="checkbox" id="history-filter-partial" checked />
+              <label for="history-filter-partial" data-i18n="filterPartial">Parciales</label>
+            </div>
+          </div>
+        </div>
+        <div id="stats-list" class="stats-list"></div>
+      </div>
+
+      <!-- Panel 2: Mapa de Calor Mensual -->
+      <div id="stats-panel-heatmap" class="stats-panel-view hidden">
+        <div class="calendar-nav-header">
+          <button id="btn-prev-month" class="btn-cal-arrow">◀</button>
+          <h4 id="calendar-month-year-label" class="calendar-month-year-label">-</h4>
+          <button id="btn-next-month" class="btn-cal-arrow">▶</button>
+        </div>
+
+        <div class="calendar-filters">
+          <div class="checkbox-group filter-checkbox">
+            <input type="checkbox" id="cal-filter-complete" checked />
+            <label for="cal-filter-complete" data-i18n="filterComplete">Completas (1h)</label>
+          </div>
+          <div class="checkbox-group filter-checkbox">
+            <input type="checkbox" id="cal-filter-partial" />
+            <label for="cal-filter-partial" data-i18n="filterPartial">Parciales</label>
+          </div>
+        </div>
+
+        <div class="monthly-heatmap-calendar" id="monthly-heatmap-container">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Panel 3: Gráfico de Barras Anual -->
+      <!-- Panel 3: Gráfico de Barras Anual -->
+      <div id="stats-panel-yearly" class="stats-panel-view hidden">
+        <div class="calendar-nav-header">
+          <button id="btn-prev-year" class="btn-cal-arrow">◀</button>
+          <h4 id="calendar-year-label" class="calendar-month-year-label">-</h4>
+          <button id="btn-next-year" class="btn-cal-arrow">▶</button>
+        </div>
+
+        <div class="calendar-filters">
+          <div class="checkbox-group filter-checkbox">
+            <input type="checkbox" id="yearly-filter-complete" checked />
+            <label for="yearly-filter-complete" data-i18n="filterComplete">Completas (1h)</label>
+          </div>
+          <div class="checkbox-group filter-checkbox">
+            <input type="checkbox" id="yearly-filter-partial" />
+            <label for="yearly-filter-partial" data-i18n="filterPartial">Parciales</label>
+          </div>
+        </div>
+
+        <div class="yearly-bar-chart" id="yearly-bar-chart-container" style="margin-top: 24px;">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+    </div>
+    <div id="stats-empty" class="stats-empty hidden" data-i18n="statsEmpty">
+      Aún no tenés meditaciones registradas. ¡Empieza hoy! 🧘
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
