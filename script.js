@@ -58,6 +58,10 @@ const translations = {
     btnYes: "Sí, registrar",
     btnNo: "No",
     btnOk: "Aceptar",
+    modalAlertTitle: "Mensaje",
+    modalConfirmTitle: "Confirmación",
+    btnConfirmYes: "Aceptar",
+    btnConfirmNo: "Cancelar",
     modalEmailStatusTitle: "Estadísticas por correo",
     btnDeleteYes: "Sí, eliminar",
     btnDeleteNo: "No, cancelar",
@@ -180,6 +184,10 @@ const translations = {
     btnYes: "Yes, save it",
     btnNo: "No",
     btnOk: "OK",
+    modalAlertTitle: "Message",
+    modalConfirmTitle: "Confirmation",
+    btnConfirmYes: "Accept",
+    btnConfirmNo: "Cancel",
     modalEmailStatusTitle: "Stats via Email",
     btnDeleteYes: "Yes, delete",
     btnDeleteNo: "No, cancel",
@@ -306,6 +314,10 @@ const modalDeleteSession = document.getElementById("modal-delete-session");
 const modalChangePassword = document.getElementById("modal-change-password");
 const modalEmailStatus = document.getElementById("modal-email-status");
 const modalAdminSettings = document.getElementById("modal-admin-settings");
+const modalCustomAlert = document.getElementById("modal-custom-alert");
+const modalCustomConfirm = document.getElementById("modal-custom-confirm");
+const customAlertMessage = document.getElementById("custom-alert-message");
+const customConfirmMessage = document.getElementById("custom-confirm-message");
 
 // Elementos admin settings
 const btnAdminSettingsTrigger = document.getElementById("btn-admin-settings-trigger");
@@ -319,6 +331,9 @@ const adminSettingsSuccess = document.getElementById("admin-settings-success");
 // Secciones (Vistas SPA)
 const sectionHome = document.getElementById("section-home");
 const sectionStats = document.getElementById("section-stats");
+const homeHeader = document.querySelector("#section-home header");
+const controlsCard = document.querySelector(".controls-card");
+const previewCard = document.querySelector(".preview-card");
 
 // Audios
 const soundA = document.getElementById("soundA");
@@ -451,8 +466,68 @@ function closeModal(modal) {
 }
 
 function closeAllModals() {
-  [modalLogin, modalSignup, modalVerify, modalMeditationDone, modalDeleteAccount, modalDeleteSession, modalChangePassword].forEach((m) => {
+  [modalLogin, modalSignup, modalVerify, modalMeditationDone, modalDeleteAccount, modalDeleteSession, modalChangePassword, modalCustomAlert, modalCustomConfirm].forEach((m) => {
     if (m) closeModal(m);
+  });
+}
+
+// Mostrar alerta personalizada
+function showCustomAlert(title, message) {
+  return new Promise((resolve) => {
+    const titleEl = document.getElementById("custom-alert-title");
+    if (titleEl) titleEl.textContent = title;
+    if (customAlertMessage) customAlertMessage.textContent = message;
+
+    const okBtn = document.getElementById("btn-custom-alert-ok");
+    const closeBtn = document.getElementById("close-custom-alert");
+
+    const onResolve = () => {
+      closeModal(modalCustomAlert);
+      okBtn?.removeEventListener("click", onResolve);
+      closeBtn?.removeEventListener("click", onResolve);
+      resolve();
+    };
+
+    okBtn?.addEventListener("click", onResolve);
+    closeBtn?.addEventListener("click", onResolve);
+
+    openModal(modalCustomAlert);
+  });
+}
+
+// Mostrar confirmación personalizada
+function showCustomConfirm(title, message) {
+  return new Promise((resolve) => {
+    const titleEl = document.getElementById("custom-confirm-title");
+    if (titleEl) titleEl.textContent = title;
+    if (customConfirmMessage) customConfirmMessage.textContent = message;
+
+    const yesBtn = document.getElementById("btn-custom-confirm-yes");
+    const noBtn = document.getElementById("btn-custom-confirm-no");
+    const closeBtn = document.getElementById("close-custom-confirm");
+
+    const onYes = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    const onNo = () => {
+      cleanup();
+      resolve(false);
+    };
+
+    const cleanup = () => {
+      closeModal(modalCustomConfirm);
+      yesBtn?.removeEventListener("click", onYes);
+      noBtn?.removeEventListener("click", onNo);
+      closeBtn?.removeEventListener("click", onNo);
+    };
+
+    yesBtn?.addEventListener("click", onYes);
+    noBtn?.addEventListener("click", onNo);
+    closeBtn?.addEventListener("click", onNo);
+
+    openModal(modalCustomConfirm);
   });
 }
 
@@ -569,7 +644,10 @@ window.saveAdminUser = async function(userId) {
   const is_admin = parseInt(roleSelect.value);
 
   if (!full_name || !email) {
-    alert(currentLang === "es" ? "Por favor completa todos los campos del usuario." : "Please fill in all user fields.");
+    await showCustomAlert(
+      translations[currentLang].modalAlertTitle,
+      currentLang === "es" ? "Por favor completa todos los campos del usuario." : "Please fill in all user fields."
+    );
     return;
   }
 
@@ -584,7 +662,10 @@ window.saveAdminUser = async function(userId) {
     });
 
     if (res.ok) {
-      alert(currentLang === "es" ? "Usuario actualizado correctamente" : "User updated successfully");
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        currentLang === "es" ? "Usuario actualizado correctamente" : "User updated successfully"
+      );
       // Si el admin se editó a sí mismo, actualizar estado local
       if (currentUser && currentUser.id === userId) {
         currentUser.full_name = full_name;
@@ -595,11 +676,17 @@ window.saveAdminUser = async function(userId) {
       loadAndRenderAdminUsers();
     } else {
       const errData = await res.json();
-      alert(errData.error || "Error al actualizar el usuario");
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        errData.error || "Error al actualizar el usuario"
+      );
     }
   } catch (err) {
     console.error("Error al guardar cambios de usuario:", err);
-    alert("Error de red");
+    await showCustomAlert(
+      translations[currentLang].modalAlertTitle,
+      currentLang === "es" ? "Error de red" : "Network error"
+    );
   }
 };
 
@@ -608,7 +695,11 @@ window.deleteAdminUser = async function(userId) {
     ? "¿Estás seguro de que quieres eliminar a este usuario y todos sus registros de meditación?"
     : "Are you sure you want to delete this user and all their meditation records?";
   
-  if (!confirm(confirmMsg)) return;
+  const hasConfirmed = await showCustomConfirm(
+    translations[currentLang].modalConfirmTitle,
+    confirmMsg
+  );
+  if (!hasConfirmed) return;
 
   try {
     const res = await fetch(`/api/admin/users/${userId}`, {
@@ -617,15 +708,24 @@ window.deleteAdminUser = async function(userId) {
     });
 
     if (res.ok) {
-      alert(currentLang === "es" ? "Usuario eliminado con éxito" : "User deleted successfully");
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        currentLang === "es" ? "Usuario eliminado con éxito" : "User deleted successfully"
+      );
       loadAndRenderAdminUsers();
     } else {
       const errData = await res.json();
-      alert(errData.error || "Error al eliminar el usuario");
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        errData.error || "Error al eliminar el usuario"
+      );
     }
   } catch (err) {
     console.error("Error al eliminar usuario:", err);
-    alert("Error de red");
+    await showCustomAlert(
+      translations[currentLang].modalAlertTitle,
+      currentLang === "es" ? "Error de red" : "Network error"
+    );
   }
 };
 
@@ -2111,6 +2211,12 @@ function startSession() {
   soundBSelect.disabled = true;
   soundCCheck.disabled = true;
 
+  // Ocultar tarjetas de configuración y previsualización, y el encabezado
+  homeHeader?.classList.add("hidden");
+  controlsCard?.classList.add("hidden");
+  previewCard?.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
   requestWakeLock();
 
   soundA.currentTime = 0;
@@ -2160,6 +2266,11 @@ function stopSession() {
   soundBSelect.disabled = false;
   soundCCheck.disabled = false;
 
+  // Volver a mostrar tarjetas de configuración y previsualización, y el encabezado
+  homeHeader?.classList.remove("hidden");
+  controlsCard?.classList.remove("hidden");
+  previewCard?.classList.remove("hidden");
+
   releaseWakeLock();
 
   // Mostrar modal de meditación completada
@@ -2183,6 +2294,11 @@ function endSession() {
 
   soundBSelect.disabled = false;
   soundCCheck.disabled = false;
+
+  // Volver a mostrar tarjetas de configuración y previsualización, y el encabezado
+  homeHeader?.classList.remove("hidden");
+  controlsCard?.classList.remove("hidden");
+  previewCard?.classList.remove("hidden");
 
   releaseWakeLock();
 
@@ -2226,9 +2342,14 @@ function previewSound(soundId) {
   const audio = document.getElementById(soundId);
   if (audio) {
     audio.currentTime = 0;
-    audio.play().catch((err) => {
+    audio.play().catch(async (err) => {
       console.error("Error al reproducir audio:", err);
-      alert("No se pudo reproducir. Asegurate de que el archivo mp3 esté cargado correctamente.");
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        currentLang === "es" 
+          ? "No se pudo reproducir. Asegurate de que el archivo mp3 esté cargado correctamente." 
+          : "Could not play. Make sure the mp3 file is loaded correctly."
+      );
     });
   }
 }
