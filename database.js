@@ -1,71 +1,155 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 
-const dbPath = process.env.DATABASE_PATH
-  ? path.resolve(process.env.DATABASE_PATH)
-  : path.resolve(__dirname, 'meditation.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error al conectar con la base de datos:', err.message);
-  } else {
-    console.log('✅ Conectado a la base de datos SQLite.');
-  }
+const databaseUrl = process.env.DATABASE_URL;
+
+// Inicializar Pool de conexiones PostgreSQL
+const pool = new Pool({
+  connectionString: databaseUrl,
+  ssl: databaseUrl && (databaseUrl.includes('localhost') || databaseUrl.includes('127.0.0.1'))
+    ? false
+    : { rejectUnauthorized: false }
 });
 
-// Crear tablas
+pool.on('error', (err) => {
+  console.error('Error inesperado en el cliente de base de datos Postgres:', err);
+});
+
+// Helper para convertir sintaxis SQLite a PostgreSQL
+function convertSql(sql) {
+  let index = 1;
+  // Reemplazar ? por $1, $2, ...
+  let newSql = sql.replace(/\?/g, () => `$${index++}`);
+
+  // Auto-increment
+  newSql = newSql.replace(/INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT/gi, 'SERIAL PRIMARY KEY');
+
+  // INSERT OR REPLACE en settings
+  if (newSql.toUpperCase().includes('INSERT OR REPLACE INTO settings')) {
+    newSql = newSql.replace(/INSERT\s+OR\s+REPLACE\s+INTO\s+settings\s*\(([^)]+)\)\s*VALUES\s*\(([^)]+)\)/gi,
+      'INSERT INTO settings ($1) VALUES ($2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value');
+  }
+
+  // Tiempos SQLite -> Postgres
+  newSql = newSql.replace(/datetime\('now',\s*'\+5\s+minutes'\)/gi, "NOW() + INTERVAL '5 minutes'");
+  newSql = newSql.replace(/datetime\('now'\)/gi, "NOW()");
+
+  return newSql;
+}
+
+// Adaptador db compatible con sqlite3
+const db = {
+  serialize(callback) {
+    if (callback) callback();
+  },
+
+  run(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
+
+    let querySql = convertSql(sql);
+
+    // Auto-retornar ID en inserciones para emular this.lastID
+    const isInsert = querySql.trim().toUpperCase().startsWith('INSERT');
+    if (isInsert && !querySql.toUpperCase().includes('RETURNING')) {
+      querySql += ' RETURNING id';
+    }
+
+    pool.query(querySql, params || [], (err, res) => {
+      const context = {
+        lastID: undefined,
+        changes: undefined
+      };
+      if (!err && res) {
+        context.changes = res.rowCount;
+        if (res.rows && res.rows.length > 0 && res.rows[0].id !== undefined) {
+          context.lastID = res.rows[0].id;
+        }
+      }
+      if (callback) {
+        callback.call(context, err);
+      }
+    });
+  },
+
+  get(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
+
+    const querySql = convertSql(sql);
+    pool.query(querySql, params || [], (err, res) => {
+      if (callback) {
+        const row = (!err && res && res.rows.length > 0) ? res.rows[0] : undefined;
+        callback(err, row);
+      }
+    });
+  },
+
+  all(sql, params, callback) {
+    if (typeof params === 'function') {
+      callback = params;
+      params = [];
+    }
+
+    const querySql = convertSql(sql);
+    pool.query(querySql, params || [], (err, res) => {
+      if (callback) {
+        const rows = (!err && res) ? res.rows : [];
+        callback(err, rows);
+      }
+    });
+  }
+};
+
+// Crear tablas si no existen al arrancar
 db.serialize(() => {
   // Tabla de usuarios
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       full_name TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       is_admin INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
   // Tabla de códigos temporales (para verificación de signup)
-  // El código expira a los 5 minutos (lo controla el servidor con expires_at)
   db.run(`
     CREATE TABLE IF NOT EXISTS temporary_codes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       email TEXT NOT NULL,
       full_name TEXT NOT NULL,
       password_hash TEXT NOT NULL,
       code TEXT NOT NULL,
-      expires_at DATETIME NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
   // Tabla de meditaciones completadas
   db.run(`
     CREATE TABLE IF NOT EXISTS meditations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL,
       user_name TEXT NOT NULL,
       duration INTEGER DEFAULT 0,
-      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
 
-  // Intentar agregar la columna duration en caso de que la tabla ya existiera previamente
-  db.run(`ALTER TABLE meditations ADD COLUMN duration INTEGER DEFAULT 0`, (err) => {
-    // Silenciar error si la columna ya existe
-  });
+  // Intentar agregar columnas por si existían antes de la migración
+  db.run(`ALTER TABLE meditations ADD COLUMN IF NOT EXISTS duration INTEGER DEFAULT 0`, (err) => {});
+  db.run(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin INTEGER DEFAULT 0`, (err) => {});
 
-  // Intentar agregar la columna is_admin a users en caso de que la tabla ya existiera
-  db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
-    // Silenciar error si la columna ya existe
-  });
-
-  // Forzar que SOLAMENTE el correo alemusho@gmail.com sea administrador, y los demás sean usuarios normales
+  // Forzar que SOLAMENTE alemusho@gmail.com sea admin
   db.run(`UPDATE users SET is_admin = 1 WHERE email = 'alemusho@gmail.com'`);
   db.run(`UPDATE users SET is_admin = 0 WHERE email != 'alemusho@gmail.com'`);
-
 
   // Tabla de configuración general
   db.run(`
@@ -74,22 +158,21 @@ db.serialize(() => {
       value TEXT
     )
   `, () => {
-    // Si la tabla de configuración está vacía, cargar valores desde .env
     db.get("SELECT COUNT(*) as count FROM settings", [], (err, row) => {
-      if (!err && row && row.count === 0) {
+      if (!err && row && parseInt(row.count) === 0) {
         db.run("INSERT INTO settings (key, value) VALUES (?, ?)", ['EMAIL_USER', process.env.EMAIL_USER || '']);
         db.run("INSERT INTO settings (key, value) VALUES (?, ?)", ['EMAIL_PASS', process.env.EMAIL_PASS || '']);
       }
     });
   });
 
-  console.log('✅ Tablas verificadas/creadas correctamente.');
+  console.log('✅ Tablas verificadas/creadas correctamente en PostgreSQL.');
 });
 
-// Función utilitaria para limpiar códigos expirados automáticamente
+// Limpiar códigos expirados automáticamente
 function cleanExpiredCodes() {
   db.run(
-    `DELETE FROM temporary_codes WHERE expires_at < datetime('now')`,
+    `DELETE FROM temporary_codes WHERE expires_at < NOW()`,
     (err) => {
       if (err) console.error('Error limpiando códigos expirados:', err.message);
     }

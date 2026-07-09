@@ -93,7 +93,7 @@ function adminMiddleware(req, res, next) {
 
 function getEmailConfig() {
   return new Promise((resolve) => {
-    db.all('SELECT key, value FROM settings WHERE key IN ("EMAIL_USER", "EMAIL_PASS")', [], (err, rows) => {
+    db.all("SELECT key, value FROM settings WHERE key IN ('EMAIL_USER', 'EMAIL_PASS')", [], (err, rows) => {
       const config = {
         EMAIL_USER: process.env.EMAIL_USER || '',
         EMAIL_PASS: process.env.EMAIL_PASS || ''
