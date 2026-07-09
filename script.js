@@ -1887,6 +1887,18 @@ function updateNavToggleText() {
     textEl.setAttribute("data-i18n", textKey);
     textEl.textContent = text;
   }
+
+  // Actualizar también el botón del dropdown de usuario
+  const dropdownToggleStats = document.getElementById("dropdown-toggle-stats");
+  if (dropdownToggleStats) {
+    const dropIconEl = dropdownToggleStats.querySelector(".dropdown-stats-icon");
+    const dropTextEl = dropdownToggleStats.querySelector(".dropdown-stats-text");
+    if (dropIconEl && dropTextEl) {
+      dropIconEl.textContent = icon;
+      dropTextEl.setAttribute("data-i18n", textKey);
+      dropTextEl.textContent = text;
+    }
+  }
 }
 
 // Cambiar entre vista Home y Estadísticas
@@ -1905,6 +1917,15 @@ function switchMainView(viewName) {
 
 // Manejador del botón nav superior
 navToggleStats?.addEventListener("click", () => {
+  const isStatsActive = !sectionStats.classList.contains("hidden");
+  switchMainView(isStatsActive ? "home" : "stats");
+});
+
+// Manejador del botón del dropdown de usuario
+document.getElementById("dropdown-toggle-stats")?.addEventListener("click", () => {
+  // Ocultar dropdown al hacer click
+  userDropdown?.classList.add("hidden");
+  userMenuBtn?.classList.remove("open");
   const isStatsActive = !sectionStats.classList.contains("hidden");
   switchMainView(isStatsActive ? "home" : "stats");
 });
