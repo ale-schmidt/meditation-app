@@ -24,6 +24,49 @@ app.use(express.static(path.join(__dirname)));
 
 
 async function sendVerificationEmail(email, fullName, code) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (resendApiKey) {
+    // Si estamos usando el dominio de prueba de Resend, solo permite enviar a alemusho@gmail.com
+    // Si es otro email, simulamos el éxito e imprimimos el código en la consola para desarrollo
+    const isSandBoxAllowed = email === 'alemusho@gmail.com';
+    if (!isSandBoxAllowed) {
+      console.log(`⚠️ [RESEND SANDBOX LIMIT] Resend solo permite enviar a alemusho@gmail.com. Simulando éxito para: ${email}`);
+      return;
+    }
+
+    console.log(`[Email] Enviando verificación a ${email} vía Resend HTTP API...`);
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Meditacion App <onboarding@resend.dev>',
+        to: email,
+        subject: 'Tu código de verificación - Meditación App',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; padding: 32px;">
+            <h2 style="color: #a78bfa; text-align: center; margin-bottom: 8px;">🧘 Meditación App</h2>
+            <p style="text-align: center; color: #94a3b8;">Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:</p>
+            <div style="background: #2d2d5e; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 48px; font-weight: bold; letter-spacing: 12px; color: #c4b5fd;">${code}</span>
+            </div>
+            <p style="text-align: center; color: #64748b; font-size: 14px;">⏳ Este código expira en <strong>5 minutos</strong>.</p>
+            <p style="text-align: center; color: #64748b; font-size: 12px;">Si no solicitaste este código, puedes ignorar este correo.</p>
+          </div>
+        `
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(`Resend API error: ${JSON.stringify(errData)}`);
+    }
+    return;
+  }
+
   const config = await getEmailConfig();
   
   // Si no hay credenciales de email configuradas, imprimir en consola (modo desarrollo)
@@ -564,6 +607,110 @@ async function sendReportToUser(user, callback) {
         return;
       }
 
+      const htmlContent = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; background: #0f0f1b; color: #e2e8f0; border-radius: 16px; border: 1px solid #2d2d5e; padding: 40px; box-sizing: border-box;">
+          <a href="http://localhost:3000" style="text-decoration: none; display: block; text-align: center; margin-bottom: 32px;">
+            <span style="font-size: 40px;">🧘</span>
+            <h2 style="color: #c4b5fd; margin: 12px 0 4px; font-weight: 700; letter-spacing: 0.5px; text-decoration: none;">${lang === 'es' ? 'Meditación App' : 'Meditation App'}</h2>
+            <p style="color: #94a3b8; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; text-decoration: none;">${lang === 'es' ? 'Reporte de Rendimiento' : 'Performance Report'}</p>
+          </a>
+          
+          <p style="font-size: 16px; line-height: 1.6; color: #cbd5e1; margin-bottom: 24px;">
+            ${lang === 'es' ? `Hola, <strong>${user.full_name}</strong>. ¡Felicitaciones por dedicarle tiempo a la meditación! Aquí están tus estadísticas:` : `Hello, <strong>${user.full_name}</strong>. Congratulations on dedicating time to meditation! Here are your statistics:`}
+          </p>
+
+          <div style="background: #1e1b4b; border-radius: 12px; border: 1px solid #312e81; padding: 24px; margin-bottom: 24px;">
+            <h3 style="color: #a78bfa; margin-top: 0; margin-bottom: 16px; font-size: 18px; border-bottom: 1px solid #4338ca; padding-bottom: 8px;">📈 ${lang === 'es' ? 'Esta Semana' : 'This Week'}</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">⏱️ ${lang === 'es' ? 'Tiempo Meditado' : 'Time Meditated'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${formattedWeekDuration}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">🧘 ${lang === 'es' ? 'Sesiones Totales' : 'Total Sessions'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${weekMeditations.length}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Completas (1h)' : 'Complete (1h)'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${weekComplete}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Parciales' : 'Partial'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${weekPartial}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; padding: 24px; margin-bottom: 32px;">
+            <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 16px; font-size: 18px; border-bottom: 1px solid #334155; padding-bottom: 8px;">📅 ${lang === 'es' ? `Este Mes (${monthName})` : `This Month (${monthName})`}</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">⏱️ ${lang === 'es' ? 'Tiempo Meditado' : 'Time Meditated'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${formattedMonthDuration}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">🧘 ${lang === 'es' ? 'Sesiones Totales' : 'Total Sessions'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${monthMeditations.length}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Completas (1h)' : 'Complete (1h)'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${monthComplete}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Parciales' : 'Partial'}:</td>
+                <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${monthPartial}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="text-align: center; color: #a78bfa; font-size: 16px; font-style: italic; margin: 0 0 24px;">
+            ${lang === 'es' ? '¡Seguí así! Cada minuto cuenta sigue practicando. 🧘' : 'Keep it up! Every minute counts keep practicing. 🧘'}
+          </p>
+
+          <hr style="border: 0; border-top: 1px solid #1e293b; margin: 24px 0 16px;">
+          <p style="text-align: center; color: #475569; font-size: 11px; margin: 0;">
+            ${lang === 'es' ? 'Recibes este correo porque eres un usuario registrado de Meditación App.' : 'You receive this email because you are a registered user of Meditation App.'}
+          </p>
+        </div>
+      `;
+
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (resendApiKey) {
+        const isSandBoxAllowed = user.email === 'alemusho@gmail.com';
+        if (!isSandBoxAllowed) {
+          console.log(`⚠️ [RESEND SANDBOX LIMIT] Resend solo permite enviar reportes a alemusho@gmail.com. Simulando éxito para: ${user.email}`);
+          if (callback) callback(null);
+          return;
+        }
+
+        console.log(`[Email] Enviando reporte a ${user.email} vía Resend HTTP API...`);
+        fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Meditacion App <onboarding@resend.dev>',
+            to: user.email,
+            subject: subject,
+            html: htmlContent
+          })
+        }).then(async (response) => {
+          if (response.ok) {
+            if (callback) callback(null);
+          } else {
+            const errData = await response.json();
+            console.error('[Resend Report Error] API response not OK:', errData);
+            if (callback) callback(new Error(JSON.stringify(errData)));
+          }
+        }).catch((err) => {
+          console.error('[Resend Report Error] Fetch failed:', err);
+          if (callback) callback(err);
+        });
+        return;
+      }
+
       const dynamicTransporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -579,72 +726,7 @@ async function sendReportToUser(user, callback) {
         from: `"Meditación App" <${config.EMAIL_USER}>`,
         to: user.email,
         subject: subject,
-        html: `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; background: #0f0f1b; color: #e2e8f0; border-radius: 16px; border: 1px solid #2d2d5e; padding: 40px; box-sizing: border-box;">
-            <a href="http://localhost:3000" style="text-decoration: none; display: block; text-align: center; margin-bottom: 32px;">
-              <span style="font-size: 40px;">🧘</span>
-              <h2 style="color: #c4b5fd; margin: 12px 0 4px; font-weight: 700; letter-spacing: 0.5px; text-decoration: none;">${lang === 'es' ? 'Meditación App' : 'Meditation App'}</h2>
-              <p style="color: #94a3b8; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; text-decoration: none;">${lang === 'es' ? 'Reporte de Rendimiento' : 'Performance Report'}</p>
-            </a>
-            
-            <p style="font-size: 16px; line-height: 1.6; color: #cbd5e1; margin-bottom: 24px;">
-              ${lang === 'es' ? `Hola, <strong>${user.full_name}</strong>. ¡Felicitaciones por dedicarle tiempo a la meditación! Aquí están tus estadísticas:` : `Hello, <strong>${user.full_name}</strong>. Congratulations on dedicating time to meditation! Here are your statistics:`}
-            </p>
-
-            <div style="background: #1e1b4b; border-radius: 12px; border: 1px solid #312e81; padding: 24px; margin-bottom: 24px;">
-              <h3 style="color: #a78bfa; margin-top: 0; margin-bottom: 16px; font-size: 18px; border-bottom: 1px solid #4338ca; padding-bottom: 8px;">📈 ${lang === 'es' ? 'Esta Semana' : 'This Week'}</h3>
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">⏱️ ${lang === 'es' ? 'Tiempo Meditado' : 'Time Meditated'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${formattedWeekDuration}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">🧘 ${lang === 'es' ? 'Sesiones Totales' : 'Total Sessions'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${weekMeditations.length}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Completas (1h)' : 'Complete (1h)'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${weekComplete}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Parciales' : 'Partial'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${weekPartial}</td>
-                </tr>
-              </table>
-            </div>
-
-            <div style="background: #0f172a; border-radius: 12px; border: 1px solid #1e293b; padding: 24px; margin-bottom: 32px;">
-              <h3 style="color: #38bdf8; margin-top: 0; margin-bottom: 16px; font-size: 18px; border-bottom: 1px solid #334155; padding-bottom: 8px;">📅 ${lang === 'es' ? `Este Mes (${monthName})` : `This Month (${monthName})`}</h3>
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">⏱️ ${lang === 'es' ? 'Tiempo Meditado' : 'Time Meditated'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${formattedMonthDuration}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; color: #94a3b8; font-size: 15px;">🧘 ${lang === 'es' ? 'Sesiones Totales' : 'Total Sessions'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #ffffff; font-weight: bold; font-size: 15px;">${monthMeditations.length}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Completas (1h)' : 'Complete (1h)'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${monthComplete}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 6px 0; padding-left: 20px; color: #64748b; font-size: 14px;">• ${lang === 'es' ? 'Parciales' : 'Partial'}:</td>
-                  <td style="padding: 6px 0; text-align: right; color: #cbd5e1; font-size: 14px;">${monthPartial}</td>
-                </tr>
-              </table>
-            </div>
-
-            <p style="text-align: center; color: #a78bfa; font-size: 16px; font-style: italic; margin: 0 0 24px;">
-              ${lang === 'es' ? '¡Seguí así! Cada minuto cuenta sigue practicando. 🧘' : 'Keep it up! Every minute counts keep practicing. 🧘'}
-            </p>
-
-            <hr style="border: 0; border-top: 1px solid #1e293b; margin: 24px 0 16px;">
-            <p style="text-align: center; color: #475569; font-size: 11px; margin: 0;">
-              ${lang === 'es' ? 'Recibes este correo porque eres un usuario registrado de Meditación App.' : 'You receive this email because you are a registered user of Meditation App.'}
-            </p>
-          </div>
-        `
+        html: htmlContent
       }, (mailErr) => {
         if (callback) callback(mailErr);
       });
