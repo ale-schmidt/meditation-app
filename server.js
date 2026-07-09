@@ -44,6 +44,9 @@ async function sendVerificationEmail(email, fullName, code) {
       user: config.EMAIL_USER,
       pass: config.EMAIL_PASS,
     },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 10000,
   });
 
   await dynamicTransporter.sendMail({
@@ -147,6 +150,9 @@ app.post('/api/signup', async (req, res) => {
           [email, full_name, passwordHash, code, expiresAt],
           async (insertErr) => {
             if (insertErr) return res.status(500).json({ error: 'Error al guardar código temporal' });
+
+            // Loggear el código en consola para facilitar pruebas si hay bloqueos de puertos de red
+            console.log(`🔑 [CÓDIGO DE VERIFICACIÓN] Para: ${email} -> Código: ${code}`);
 
             // Enviar email
             try {
@@ -564,6 +570,9 @@ async function sendReportToUser(user, callback) {
           user: config.EMAIL_USER,
           pass: config.EMAIL_PASS,
         },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 10000,
       });
 
       dynamicTransporter.sendMail({
