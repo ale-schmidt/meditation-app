@@ -371,7 +371,8 @@ function updateLanguage() {
 
   if (currentUser) {
     const firstName = currentUser.full_name.split(" ")[0];
-    userGreeting.textContent = `${t.hello} ${firstName}`;
+    const adminLabel = currentUser.is_admin === 1 ? " (admin)" : "";
+    userGreeting.textContent = `${t.hello} ${firstName}${adminLabel}`;
     updateNavToggleText();
   }
 
@@ -1014,7 +1015,7 @@ document.getElementById("form-signup")?.addEventListener("submit", async (e) => 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ full_name, email, password }),
+      body: JSON.stringify({ full_name, email, password, lang: currentLang }),
     });
 
     const data = await res.json();
@@ -1282,7 +1283,7 @@ document.getElementById("btn-resend")?.addEventListener("click", async () => {
     const res = await fetch("/api/resend-code", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: pendingSignupEmail }),
+      body: JSON.stringify({ email: pendingSignupEmail, lang: currentLang }),
     });
 
     const data = await res.json();

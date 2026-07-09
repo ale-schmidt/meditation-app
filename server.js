@@ -23,12 +23,23 @@ app.use(express.static(path.join(__dirname)));
 
 
 
-async function sendVerificationEmail(email, fullName, code) {
+async function sendVerificationEmail(email, fullName, code, lang = 'es') {
   const resendApiKey = process.env.RESEND_API_KEY;
 
-  if (resendApiKey) {
+  const isEs = lang === 'es';
+  const subject = isEs ? 'Tu código de verificación - Meditación App' : 'Your verification code - Meditation App';
+  const welcomeText = isEs 
+    ? `Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:` 
+    : `Hello, <strong>${fullName}</strong>. Here is your verification code:`;
+  const expiryText = isEs 
+    ? `⏳ Este código expira en <strong>5 minutos</strong>.` 
+    : `⏳ This code expires in <strong>5 minutes</strong>.`;
+  const ignoreText = isEs 
+    ? `Si no solicitaste este código, puedes ignorar este correo.` 
+    : `If you did not request this code, you can ignore this email.`;
 
-    console.log(`[Email] Enviando verificación a ${email} vía Resend HTTP API...`);
+  if (resendApiKey) {
+    console.log(`[Email] Enviando verificación a ${email} vía Resend HTTP API (${lang})...`);
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -38,16 +49,16 @@ async function sendVerificationEmail(email, fullName, code) {
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL || 'Meditacion App <onboarding@resend.dev>',
         to: email,
-        subject: 'Tu código de verificación - Meditación App',
+        subject: subject,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; padding: 32px;">
-            <h2 style="color: #a78bfa; text-align: center; margin-bottom: 8px;">🧘 Meditación App</h2>
-            <p style="text-align: center; color: #94a3b8;">Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:</p>
+            <h2 style="color: #a78bfa; text-align: center; margin-bottom: 8px;">🧘 ${isEs ? 'Meditación App' : 'Meditation App'}</h2>
+            <p style="text-align: center; color: #94a3b8;">${welcomeText}</p>
             <div style="background: #2d2d5e; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
               <span style="font-size: 48px; font-weight: bold; letter-spacing: 12px; color: #c4b5fd;">${code}</span>
             </div>
-            <p style="text-align: center; color: #64748b; font-size: 14px;">⏳ Este código expira en <strong>5 minutos</strong>.</p>
-            <p style="text-align: center; color: #64748b; font-size: 12px;">Si no solicitaste este código, puedes ignorar este correo.</p>
+            <p style="text-align: center; color: #64748b; font-size: 14px;">${expiryText}</p>
+            <p style="text-align: center; color: #64748b; font-size: 12px;">${ignoreText}</p>
           </div>
         `
       })
@@ -65,11 +76,11 @@ async function sendVerificationEmail(email, fullName, code) {
   // Si no hay credenciales de email configuradas, imprimir en consola (modo desarrollo)
   if (!config.EMAIL_USER || !config.EMAIL_PASS) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📧 [MODO DESARROLLO - No se envía email real]');
+    console.log(`📧 [MODO DESARROLLO - No se envía email real (${lang})]`);
     console.log(`   Para: ${email}`);
     console.log(`   Nombre: ${fullName}`);
     console.log(`   ✨ CÓDIGO DE VERIFICACIÓN: ${code}`);
-    console.log('   (El código expira en 5 minutos)');
+    console.log(isEs ? '   (El código expira en 5 minutos)' : '   (Code expires in 5 minutes)');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     return;
   }
@@ -85,20 +96,24 @@ async function sendVerificationEmail(email, fullName, code) {
     socketTimeout: 10000,
   });
 
+  const textContent = isEs 
+    ? `Hola, ${fullName}.\n\nTu código de verificación es: ${code}\n\nEste código expira en 5 minutos.`
+    : `Hello, ${fullName}.\n\nYour verification code is: ${code}\n\nThis code expires in 5 minutes.`;
+
   await dynamicTransporter.sendMail({
     from: `"Meditación App" <${config.EMAIL_USER}>`,
     to: email,
-    subject: 'Tu código de verificación - Meditación App',
-    text: `Hola, ${fullName}.\n\nTu código de verificación es: ${code}\n\nEste código expira en 5 minutos.`,
+    subject: subject,
+    text: textContent,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; background: #1a1a2e; color: #e2e8f0; border-radius: 12px; padding: 32px;">
-        <h2 style="color: #a78bfa; text-align: center; margin-bottom: 8px;">🧘 Meditación App</h2>
-        <p style="text-align: center; color: #94a3b8;">Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:</p>
+        <h2 style="color: #a78bfa; text-align: center; margin-bottom: 8px;">🧘 ${isEs ? 'Meditación App' : 'Meditation App'}</h2>
+        <p style="text-align: center; color: #94a3b8;">${welcomeText}</p>
         <div style="background: #2d2d5e; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
           <span style="font-size: 48px; font-weight: bold; letter-spacing: 12px; color: #c4b5fd;">${code}</span>
         </div>
-        <p style="text-align: center; color: #64748b; font-size: 14px;">⏳ Este código expira en <strong>5 minutos</strong>.</p>
-        <p style="text-align: center; color: #64748b; font-size: 12px;">Si no solicitaste este código, puedes ignorar este correo.</p>
+        <p style="text-align: center; color: #64748b; font-size: 14px;">${expiryText}</p>
+        <p style="text-align: center; color: #64748b; font-size: 12px;">${ignoreText}</p>
       </div>
     `,
   });
@@ -154,7 +169,7 @@ function getEmailConfig() {
 // POST /api/signup → Recibe datos, hashea contraseña, genera código, envía email
 app.post('/api/signup', async (req, res) => {
   try {
-    const { full_name, email, password } = req.body;
+    const { full_name, email, password, lang } = req.body;
 
     // Validaciones básicas del servidor
     if (!full_name || !email || !password) {
@@ -192,7 +207,7 @@ app.post('/api/signup', async (req, res) => {
 
             // Enviar email
             try {
-              await sendVerificationEmail(email, full_name, code);
+              await sendVerificationEmail(email, full_name, code, lang);
               res.json({ success: true, message: 'Código enviado al correo electrónico' });
             } catch (emailErr) {
               console.error('Error enviando email:', emailErr);
@@ -264,7 +279,7 @@ app.post('/api/verify-code', (req, res) => {
 
 // POST /api/resend-code → Reenvía el código (regenera uno nuevo)
 app.post('/api/resend-code', async (req, res) => {
-  const { email } = req.body;
+  const { email, lang } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerido' });
 
   db.get('SELECT * FROM temporary_codes WHERE email = ?', [email], async (err, row) => {
@@ -281,7 +296,7 @@ app.post('/api/resend-code', async (req, res) => {
         if (updateErr) return res.status(500).json({ error: 'Error al regenerar el código' });
 
         try {
-          await sendVerificationEmail(email, row.full_name, newCode);
+          await sendVerificationEmail(email, row.full_name, newCode, lang);
           res.json({ success: true, message: 'Nuevo código enviado' });
         } catch {
           res.status(500).json({ error: 'Error al enviar el correo' });
