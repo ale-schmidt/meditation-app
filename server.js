@@ -162,6 +162,11 @@ function getEmailConfig() {
   });
 }
 
+// GET /api/health → Health check endpoint for keep-alive monitoring
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // ──────────────────────────────────────────────
 // RUTAS DE AUTENTICACIÓN
 // ──────────────────────────────────────────────
