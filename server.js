@@ -27,13 +27,6 @@ async function sendVerificationEmail(email, fullName, code) {
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (resendApiKey) {
-    // Si estamos usando el dominio de prueba de Resend, solo permite enviar a alemusho@gmail.com
-    // Si es otro email, simulamos el éxito e imprimimos el código en la consola para desarrollo
-    const isSandBoxAllowed = email === 'alemusho@gmail.com';
-    if (!isSandBoxAllowed) {
-      console.log(`⚠️ [RESEND SANDBOX LIMIT] Resend solo permite enviar a alemusho@gmail.com. Simulando éxito para: ${email}`);
-      return;
-    }
 
     console.log(`[Email] Enviando verificación a ${email} vía Resend HTTP API...`);
     const response = await fetch('https://api.resend.com/emails', {
@@ -676,13 +669,6 @@ async function sendReportToUser(user, callback) {
 
       const resendApiKey = process.env.RESEND_API_KEY;
       if (resendApiKey) {
-        const isSandBoxAllowed = user.email === 'alemusho@gmail.com';
-        if (!isSandBoxAllowed) {
-          console.log(`⚠️ [RESEND SANDBOX LIMIT] Resend solo permite enviar reportes a alemusho@gmail.com. Simulando éxito para: ${user.email}`);
-          if (callback) callback(null);
-          return;
-        }
-
         console.log(`[Email] Enviando reporte a ${user.email} vía Resend HTTP API...`);
         fetch('https://api.resend.com/emails', {
           method: 'POST',
