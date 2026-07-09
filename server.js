@@ -43,7 +43,7 @@ async function sendVerificationEmail(email, fullName, code) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Meditacion App <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || 'Meditacion App <onboarding@resend.dev>',
         to: email,
         subject: 'Tu código de verificación - Meditación App',
         html: `
@@ -691,7 +691,7 @@ async function sendReportToUser(user, callback) {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: 'Meditacion App <onboarding@resend.dev>',
+            from: process.env.RESEND_FROM_EMAIL || 'Meditacion App <onboarding@resend.dev>',
             to: user.email,
             subject: subject,
             html: htmlContent
