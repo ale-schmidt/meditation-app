@@ -43,7 +43,7 @@ const translations = {
     modalSignupTitle: "Crear Cuenta",
     modalVerifyTitle: "Verificá tu correo",
     modalDoneTitle: "¿Marcar como completada?",
-    modalDoneSubtitle: "¿Querés registrar esta meditación como completada?",
+    modalDoneSubtitle: "¿Querés guardar esta meditación?",
     modalDeleteTitle: "¿Eliminar cuenta?",
     modalDeleteSubtitle: "Esta acción es permanente y eliminará todos tus datos y meditaciones.",
     modalStatsTitle: "Mis Estadísticas",
@@ -169,7 +169,7 @@ const translations = {
     modalSignupTitle: "Create Account",
     modalVerifyTitle: "Verify your email",
     modalDoneTitle: "Mark as completed?",
-    modalDoneSubtitle: "Do you want to record this meditation as completed?",
+    modalDoneSubtitle: "Do you want to record this meditation?",
     modalDeleteTitle: "Delete account?",
     modalDeleteSubtitle: "This action is permanent and will delete all your data and meditations.",
     modalStatsTitle: "My Statistics",
@@ -591,7 +591,7 @@ async function loadAndRenderAdminUsers() {
   try {
     const res = await fetch("/api/admin/users", { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch users");
-    
+
     const users = await res.json();
     tbody.innerHTML = "";
 
@@ -632,7 +632,7 @@ async function loadAndRenderAdminUsers() {
   }
 }
 
-window.saveAdminUser = async function(userId) {
+window.saveAdminUser = async function (userId) {
   const nameInput = document.getElementById(`admin-user-name-${userId}`);
   const emailInput = document.getElementById(`admin-user-email-${userId}`);
   const roleSelect = document.getElementById(`admin-user-role-${userId}`);
@@ -690,11 +690,11 @@ window.saveAdminUser = async function(userId) {
   }
 };
 
-window.deleteAdminUser = async function(userId) {
+window.deleteAdminUser = async function (userId) {
   const confirmMsg = currentLang === "es"
     ? "¿Estás seguro de que quieres eliminar a este usuario y todos sus registros de meditación?"
     : "Are you sure you want to delete this user and all their meditation records?";
-  
+
   const hasConfirmed = await showCustomConfirm(
     translations[currentLang].modalConfirmTitle,
     confirmMsg
@@ -2346,8 +2346,8 @@ function previewSound(soundId) {
       console.error("Error al reproducir audio:", err);
       await showCustomAlert(
         translations[currentLang].modalAlertTitle,
-        currentLang === "es" 
-          ? "No se pudo reproducir. Asegurate de que el archivo mp3 esté cargado correctamente." 
+        currentLang === "es"
+          ? "No se pudo reproducir. Asegurate de que el archivo mp3 esté cargado correctamente."
           : "Could not play. Make sure the mp3 file is loaded correctly."
       );
     });
