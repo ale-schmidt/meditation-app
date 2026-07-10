@@ -131,6 +131,13 @@ const translations = {
     statusSaving: "Guardando...",
     statusDeleting: "Eliminando...",
     statusExpired: "EXPIRADO",
+    modalDeleteSessionTitle: "¿Eliminar registro?",
+    modalDeleteSessionSubtitle: "¿Estás seguro de que querés borrar este registro de meditación de la base de datos?",
+    adminUsersTitle: "Usuarios Registrados",
+    thName: "Nombre completo",
+    thEmail: "Email",
+    thRole: "Rol",
+    thActions: "Acciones",
   },
   en: {
     title: "Meditation Session",
@@ -257,6 +264,13 @@ const translations = {
     statusSaving: "Saving...",
     statusDeleting: "Deleting...",
     statusExpired: "EXPIRED",
+    modalDeleteSessionTitle: "Delete record?",
+    modalDeleteSessionSubtitle: "Are you sure you want to delete this meditation record from the database?",
+    adminUsersTitle: "Registered Users",
+    thName: "Full Name",
+    thEmail: "Email",
+    thRole: "Role",
+    thActions: "Actions",
   },
 };
 
@@ -441,6 +455,11 @@ function updateLanguage() {
   } else {
     statusMsg.textContent = currentSeconds === 0 ? t.statusFinished : t.statusReady;
   }
+
+  // Si la configuración de administrador está abierta, actualizar la tabla
+  if (modalAdminSettings && !modalAdminSettings.classList.contains("hidden")) {
+    loadAndRenderAdminUsers();
+  }
 }
 
 langToggleBtn.addEventListener("click", () => {
@@ -586,7 +605,9 @@ async function loadAndRenderAdminUsers() {
   const tbody = document.getElementById("admin-users-tbody");
   if (!tbody) return;
 
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Cargando usuarios...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">${
+    currentLang === "es" ? "Cargando usuarios..." : "Loading users..."
+  }</td></tr>`;
 
   try {
     const res = await fetch("/api/admin/users", { credentials: "include" });
@@ -596,7 +617,9 @@ async function loadAndRenderAdminUsers() {
     tbody.innerHTML = "";
 
     if (users.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">No hay usuarios registrados</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">${
+        currentLang === "es" ? "No hay usuarios registrados" : "No registered users"
+      }</td></tr>`;
       return;
     }
 
@@ -605,6 +628,11 @@ async function loadAndRenderAdminUsers() {
 
       // Si es el usuario logueado, deshabilitar el botón delete
       const isSelf = currentUser && currentUser.id === u.id;
+
+      const roleUserLabel = currentLang === "es" ? "Usuario" : "User";
+      const roleAdminLabel = currentLang === "es" ? "Admin" : "Admin";
+      const saveTitle = currentLang === "es" ? "Guardar cambios" : "Save changes";
+      const deleteTitle = currentLang === "es" ? "Eliminar usuario" : "Delete user";
 
       tr.innerHTML = `
         <td>
@@ -615,20 +643,22 @@ async function loadAndRenderAdminUsers() {
         </td>
         <td>
           <select id="admin-user-role-${u.id}">
-            <option value="0" ${u.is_admin === 0 ? "selected" : ""}>Usuario</option>
-            <option value="1" ${u.is_admin === 1 ? "selected" : ""}>Admin</option>
+            <option value="0" ${u.is_admin === 0 ? "selected" : ""}>${roleUserLabel}</option>
+            <option value="1" ${u.is_admin === 1 ? "selected" : ""}>${roleAdminLabel}</option>
           </select>
         </td>
         <td class="admin-users-actions">
-          <button class="btn-admin-action btn-save" title="Guardar cambios" onclick="saveAdminUser(${u.id})">💾</button>
-          <button class="btn-admin-action btn-delete" title="Eliminar usuario" ${isSelf ? "disabled" : ""} onclick="deleteAdminUser(${u.id})">🗑️</button>
+          <button class="btn-admin-action btn-save" title="${saveTitle}" onclick="saveAdminUser(${u.id})">💾</button>
+          <button class="btn-admin-action btn-delete" title="${deleteTitle}" ${isSelf ? "disabled" : ""} onclick="deleteAdminUser(${u.id})">🗑️</button>
         </td>
       `;
       tbody.appendChild(tr);
     });
   } catch (err) {
     console.error("Error al cargar la lista de usuarios:", err);
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">Error al cargar usuarios</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error);">${
+      currentLang === "es" ? "Error al cargar usuarios" : "Error loading users"
+    }</td></tr>`;
   }
 }
 
@@ -678,7 +708,7 @@ window.saveAdminUser = async function (userId) {
       const errData = await res.json();
       await showCustomAlert(
         translations[currentLang].modalAlertTitle,
-        errData.error || "Error al actualizar el usuario"
+        errData.error || (currentLang === "es" ? "Error al actualizar el usuario" : "Error updating user")
       );
     }
   } catch (err) {
@@ -717,7 +747,7 @@ window.deleteAdminUser = async function (userId) {
       const errData = await res.json();
       await showCustomAlert(
         translations[currentLang].modalAlertTitle,
-        errData.error || "Error al eliminar el usuario"
+        errData.error || (currentLang === "es" ? "Error al eliminar el usuario" : "Error deleting user")
       );
     }
   } catch (err) {
@@ -750,11 +780,11 @@ btnAdminSettingsTrigger?.addEventListener("click", async () => {
       adminEmailPass.value = data.EMAIL_PASS || "";
     } else {
       const errData = await res.json();
-      adminSettingsError.textContent = errData.error || "Error al cargar la configuración";
+      adminSettingsError.textContent = errData.error || (currentLang === "es" ? "Error al cargar la configuración" : "Error loading settings");
       adminSettingsError.classList.remove("hidden");
     }
   } catch (err) {
-    adminSettingsError.textContent = "Error de red al conectar con el servidor";
+    adminSettingsError.textContent = currentLang === "es" ? "Error de red al conectar con el servidor" : "Network error connecting to the server";
     adminSettingsError.classList.remove("hidden");
   }
 
@@ -805,11 +835,11 @@ formAdminSettings?.addEventListener("submit", async (e) => {
       }, 1500);
     } else {
       const errData = await res.json();
-      adminSettingsError.textContent = errData.error || "Error al guardar la configuración";
+      adminSettingsError.textContent = errData.error || (currentLang === "es" ? "Error al guardar la configuración" : "Error saving settings");
       adminSettingsError.classList.remove("hidden");
     }
   } catch (err) {
-    adminSettingsError.textContent = "Error de red al conectar con el servidor";
+    adminSettingsError.textContent = currentLang === "es" ? "Error de red al conectar con el servidor" : "Network error connecting to the server";
     adminSettingsError.classList.remove("hidden");
   } finally {
     submitBtn.disabled = false;
