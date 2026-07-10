@@ -167,7 +167,8 @@
           Sesión</button>
       </form>
       <p class="modal-switch"><span id="modal-login-switch-text" data-i18n="loginSwitchText">¿No tenés cuenta?</span>
-        <button class="link-btn" id="switch-to-signup" data-i18n="switchToSignup">Registrate aquí</button></p>
+        <button class="link-btn" id="switch-to-signup" data-i18n="switchToSignup">Registrate aquí</button>
+      </p>
     </div>
   </div>
 
@@ -214,7 +215,8 @@
           y Recibir Código</button>
       </form>
       <p class="modal-switch"><span id="modal-signup-switch-text" data-i18n="signupSwitchText">¿Ya tenés cuenta?</span>
-        <button class="link-btn" id="switch-to-login" data-i18n="switchToLogin">Iniciá sesión aquí</button></p>
+        <button class="link-btn" id="switch-to-login" data-i18n="switchToLogin">Iniciá sesión aquí</button>
+      </p>
     </div>
   </div>
 
@@ -237,7 +239,8 @@
         </div>
         <p id="verify-error" class="form-error hidden"></p>
         <div id="verify-countdown" class="countdown-timer"><span data-i18n="countdownLabel">⏳ El código expira en</span>
-          <span id="countdown-seconds">5:00</span></div>
+          <span id="countdown-seconds">5:00</span>
+        </div>
         <button type="submit" id="btn-verify-submit" class="btn-modal-primary" data-i18n="btnVerifySubmit">Verificar
           Código</button>
         <button type="button" id="btn-resend" class="btn-resend" data-i18n="btnResend">Reenviar código</button>
@@ -418,26 +421,32 @@
   </div>
 
   <!-- Modal Alerta Personalizado -->
-  <div id="modal-custom-alert" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="custom-alert-title">
+  <div id="modal-custom-alert" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="custom-alert-title">
     <div class="modal-box">
       <button class="modal-close" id="close-custom-alert" aria-label="Cerrar">✕</button>
       <div class="modal-icon">ℹ️</div>
       <h2 id="custom-alert-title" data-i18n="modalAlertTitle">Mensaje</h2>
-      <p id="custom-alert-message" class="modal-text" style="text-align: center; margin: 20px 0; color: #cbd5e1; font-size: 16px;"></p>
+      <p id="custom-alert-message" class="modal-text"
+        style="text-align: center; margin: 20px 0; color: #cbd5e1; font-size: 16px;"></p>
       <button id="btn-custom-alert-ok" class="btn-modal-primary" data-i18n="btnOk">Aceptar</button>
     </div>
   </div>
 
   <!-- Modal Confirmación Personalizado -->
-  <div id="modal-custom-confirm" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="custom-confirm-title">
+  <div id="modal-custom-confirm" class="modal-overlay hidden" role="dialog" aria-modal="true"
+    aria-labelledby="custom-confirm-title">
     <div class="modal-box">
       <button class="modal-close" id="close-custom-confirm" aria-label="Cerrar">✕</button>
       <div class="modal-icon">❓</div>
       <h2 id="custom-confirm-title" data-i18n="modalConfirmTitle">Confirmación</h2>
-      <p id="custom-confirm-message" class="modal-text" style="text-align: center; margin: 20px 0; color: #cbd5e1; font-size: 16px;"></p>
+      <p id="custom-confirm-message" class="modal-text"
+        style="text-align: center; margin: 20px 0; color: #cbd5e1; font-size: 16px;"></p>
       <div style="display: flex; gap: 12px; margin-top: 24px; width: 100%;">
-        <button id="btn-custom-confirm-yes" class="btn-modal-primary btn-danger" style="flex: 1; margin-top: 0;" data-i18n="btnConfirmYes">Aceptar</button>
-        <button id="btn-custom-confirm-no" class="btn-secondary" style="flex: 1; padding: 12px;" data-i18n="btnConfirmNo">Cancelar</button>
+        <button id="btn-custom-confirm-yes" class="btn-modal-primary btn-danger" style="flex: 1; margin-top: 0;"
+          data-i18n="btnConfirmYes">Aceptar</button>
+        <button id="btn-custom-confirm-no" class="btn-secondary" style="flex: 1; padding: 12px;"
+          data-i18n="btnConfirmNo">Cancelar</button>
       </div>
     </div>
   </div>
@@ -538,7 +547,7 @@
             <label for="cal-filter-complete" data-i18n="filterComplete">Completas (1h)</label>
           </div>
           <div class="checkbox-group filter-checkbox">
-            <input type="checkbox" id="cal-filter-partial" />
+            <input type="checkbox" id="cal-filter-partial" checked />
             <label for="cal-filter-partial" data-i18n="filterPartial">Parciales</label>
           </div>
         </div>
@@ -563,7 +572,7 @@
             <label for="yearly-filter-complete" data-i18n="filterComplete">Completas (1h)</label>
           </div>
           <div class="checkbox-group filter-checkbox">
-            <input type="checkbox" id="yearly-filter-partial" />
+            <input type="checkbox" id="yearly-filter-partial" checked />
             <label for="yearly-filter-partial" data-i18n="filterPartial">Parciales</label>
           </div>
         </div>
