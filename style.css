@@ -160,11 +160,13 @@ body {
   text-decoration: none;
   margin-right: 12px;
 }
-#nav-toggle-stats {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-right: 0;
+@media (min-width: 769px) {
+  #nav-toggle-stats {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-right: 0;
+  }
 }
 .btn-nav:hover {
   border-color: var(--purple);
@@ -1429,4 +1431,10 @@ footer { text-align: center; margin-top: 12px; }
   .period-item:last-child { border-bottom: none; padding-bottom: 0; }
   .btn-nav { padding: 8px 10px; margin-right: 6px; }
   .btn-nav .nav-text { display: none; }
+}
+
+@media (max-width: 768px) {
+  #user-greeting {
+    display: none;
+  }
 }
