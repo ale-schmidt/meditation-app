@@ -2108,9 +2108,15 @@ function showMeditationDoneModal() {
   const savedMsg = document.getElementById("meditation-saved-msg");
   if (savedMsg) savedMsg.classList.add("hidden");
 
+  const confirmButtonsWrap = modalMeditationDone?.querySelector(".modal-confirm-buttons");
+  if (confirmButtonsWrap) confirmButtonsWrap.classList.remove("hidden");
+
   const yesBtn = document.getElementById("btn-confirm-yes");
   const noBtn = document.getElementById("btn-confirm-no");
-  if (yesBtn) yesBtn.disabled = false;
+  if (yesBtn) {
+    yesBtn.disabled = false;
+    yesBtn.textContent = translations[currentLang].btnYes;
+  }
 
   openModal(modalMeditationDone);
 }
@@ -2141,6 +2147,9 @@ document.getElementById("btn-confirm-yes")?.addEventListener("click", async () =
     });
 
     if (res.ok) {
+      const confirmButtonsWrap = modalMeditationDone?.querySelector(".modal-confirm-buttons");
+      if (confirmButtonsWrap) confirmButtonsWrap.classList.add("hidden");
+
       if (savedMsg) {
         savedMsg.classList.remove("hidden");
         savedMsg.textContent = translations[currentLang].meditationSaved;
