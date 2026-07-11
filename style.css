@@ -198,6 +198,10 @@ body {
   backdrop-filter: blur(20px);
   animation: dropIn 0.15s ease;
 }
+.dropdown-greeting,
+.dropdown-greeting-divider {
+  display: none;
+}
 
 @keyframes dropIn {
   from { opacity: 0; transform: translateY(-8px); }
@@ -1436,5 +1440,21 @@ footer { text-align: center; margin-top: 12px; }
 @media (max-width: 768px) {
   #user-greeting {
     display: none;
+  }
+  .dropdown-greeting {
+    display: block !important;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--purple-light);
+    text-align: center;
+    background: rgba(167, 139, 250, 0.08);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    border: 1px dashed rgba(167, 139, 250, 0.2);
+  }
+  .dropdown-greeting-divider {
+    display: block !important;
+    margin-bottom: 8px;
   }
 }

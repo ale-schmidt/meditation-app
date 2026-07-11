@@ -306,6 +306,7 @@ const langToggleBtn = document.getElementById("lang-toggle");
 const authButtons = document.getElementById("auth-buttons");
 const userMenu = document.getElementById("user-menu");
 const userGreeting = document.getElementById("user-greeting");
+const dropdownUserGreeting = document.getElementById("dropdown-user-greeting");
 const userMenuBtn = document.getElementById("user-menu-btn");
 const userDropdown = document.getElementById("user-dropdown");
 
@@ -401,7 +402,9 @@ function updateLanguage() {
   if (currentUser) {
     const firstName = currentUser.full_name.split(" ")[0];
     const adminLabel = currentUser.is_admin === 1 ? " (admin)" : "";
-    userGreeting.textContent = `${t.hello} ${firstName}${adminLabel}`;
+    const greetingText = `${t.hello} ${firstName}${adminLabel}`;
+    if (userGreeting) userGreeting.textContent = greetingText;
+    if (dropdownUserGreeting) dropdownUserGreeting.textContent = greetingText;
     updateNavToggleText();
   }
 
@@ -1020,7 +1023,9 @@ function setLoggedIn(user) {
   updateNavToggleText();
   const firstName = user.full_name.split(" ")[0];
   const adminLabel = user.is_admin === 1 ? " (admin)" : "";
-  userGreeting.textContent = `${translations[currentLang].hello} ${firstName}${adminLabel}`;
+  const greetingText = `${translations[currentLang].hello} ${firstName}${adminLabel}`;
+  if (userGreeting) userGreeting.textContent = greetingText;
+  if (dropdownUserGreeting) dropdownUserGreeting.textContent = greetingText;
 
   // Mostrar/ocultar configuración para administradores
   if (user.is_admin === 1) {
