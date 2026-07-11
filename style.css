@@ -160,6 +160,12 @@ body {
   text-decoration: none;
   margin-right: 12px;
 }
+#nav-toggle-stats {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-right: 0;
+}
 .btn-nav:hover {
   border-color: var(--purple);
   background: var(--bg-card-hover);
