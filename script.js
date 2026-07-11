@@ -1735,6 +1735,8 @@ function renderHistoryList(meditations) {
     entry.querySelector(".btn-delete-entry").addEventListener("click", () => {
       meditationIdToDelete = m.id;
       document.getElementById("delete-session-error").classList.add("hidden");
+      const noBtn = document.getElementById("btn-delete-session-no");
+      if (noBtn) noBtn.classList.remove("hidden");
       openModal(modalDeleteSession);
     });
 
@@ -2071,8 +2073,10 @@ document.getElementById("btn-delete-session-no")?.addEventListener("click", () =
 document.getElementById("btn-delete-session-yes")?.addEventListener("click", async () => {
   const errorEl = document.getElementById("delete-session-error");
   const yesBtn = document.getElementById("btn-delete-session-yes");
+  const noBtn = document.getElementById("btn-delete-session-no");
   errorEl.classList.add("hidden");
   yesBtn.disabled = true;
+  if (noBtn) noBtn.classList.add("hidden");
   const originalText = yesBtn.textContent;
   yesBtn.textContent = translations[currentLang].statusDeleting;
 
@@ -2098,6 +2102,7 @@ document.getElementById("btn-delete-session-yes")?.addEventListener("click", asy
   } finally {
     yesBtn.disabled = false;
     yesBtn.textContent = originalText;
+    if (noBtn) noBtn.classList.remove("hidden");
   }
 });
 
