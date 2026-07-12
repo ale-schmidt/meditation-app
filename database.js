@@ -166,6 +166,18 @@ db.serialize(() => {
     });
   });
 
+  // Tabla de hábitos del administrador
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_habits (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      habit_name TEXT NOT NULL,
+      notes TEXT,
+      completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   console.log('✅ Tablas verificadas/creadas correctamente en PostgreSQL.');
 });
 

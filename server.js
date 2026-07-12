@@ -490,6 +490,70 @@ app.delete('/api/admin/users/:id', adminMiddleware, (req, res) => {
 });
 
 // ──────────────────────────────────────────────
+// RUTAS DE HÁBITOS DE ADMINISTRADOR
+// ──────────────────────────────────────────────
+
+// GET /api/admin/habits → Obtiene todos los hábitos del administrador logueado
+app.get('/api/admin/habits', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  db.all(
+    'SELECT * FROM admin_habits WHERE user_id = ? ORDER BY completed_at DESC',
+    [userId],
+    (err, rows) => {
+      if (err) {
+        console.error('[Admin Habits GET] Error:', err);
+        return res.status(500).json({ error: 'Error al obtener los hábitos' });
+      }
+      res.json({ habits: rows, total: rows.length });
+    }
+  );
+});
+
+// POST /api/admin/habits → Registra una consumación de hábito
+app.post('/api/admin/habits', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  const { habit_name, notes, completed_at } = req.body;
+
+  if (!habit_name) {
+    return res.status(400).json({ error: 'El nombre del hábito es requerido' });
+  }
+
+  const dateToStore = completed_at ? new Date(completed_at).toISOString() : new Date().toISOString();
+
+  db.run(
+    'INSERT INTO admin_habits (user_id, habit_name, notes, completed_at) VALUES (?, ?, ?, ?)',
+    [userId, habit_name, notes || '', dateToStore],
+    function (err) {
+      if (err) {
+        console.error('[Admin Habits POST] Error:', err);
+        return res.status(500).json({ error: 'Error al registrar el hábito' });
+      }
+      res.json({
+        success: true,
+        habit: { id: this.lastID, user_id: userId, habit_name, notes: notes || '', completed_at: dateToStore }
+      });
+    }
+  );
+});
+
+// DELETE /api/admin/habits/:id → Elimina un registro de hábito
+app.delete('/api/admin/habits/:id', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  const habitId = req.params.id;
+
+  db.get('SELECT user_id FROM admin_habits WHERE id = ?', [habitId], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Error interno del servidor' });
+    if (!row) return res.status(404).json({ error: 'Registro de hábito no encontrado' });
+    if (row.user_id !== userId) return res.status(403).json({ error: 'Acceso denegado' });
+
+    db.run('DELETE FROM admin_habits WHERE id = ?', [habitId], (deleteErr) => {
+      if (deleteErr) return res.status(500).json({ error: 'Error al eliminar el registro' });
+      res.json({ success: true, message: 'Registro de hábito eliminado' });
+    });
+  });
+});
+
+// ──────────────────────────────────────────────
 // RUTAS DE MEDITACIONES
 // ──────────────────────────────────────────────
 

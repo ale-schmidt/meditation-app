@@ -1458,3 +1458,133 @@ footer { text-align: center; margin-top: 12px; }
     margin-bottom: 8px;
   }
 }
+
+/* ════════════════════════════════════════════════
+   HABIT TRACKER STYLES
+   ════════════════════════════════════════════════ */
+.weekly-compliance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.weekly-habit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.weekly-habit-row:last-child {
+  border-bottom: none;
+}
+.weekly-habit-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 15px;
+  flex: 1;
+}
+.weekly-days {
+  display: flex;
+  gap: 8px;
+}
+.weekly-day-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+.weekly-day-dot.completed {
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid var(--purple-light);
+  color: var(--purple-light);
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.2);
+}
+.weekly-day-dot.today {
+  border-color: var(--blue);
+  color: var(--blue);
+  font-weight: 800;
+}
+.weekly-day-dot.today.completed {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: var(--purple-light);
+  color: var(--purple-light);
+}
+
+.streaks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.streak-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: rgba(167, 139, 250, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.streak-info-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.streak-icon-wrap {
+  font-size: 20px;
+}
+.streak-habit-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+}
+.streak-numbers {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.streak-number-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+}
+.streak-number-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--purple-light);
+}
+.streak-number-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Responsividad para dashboard de hábitos */
+@media (max-width: 768px) {
+  .habit-dashboard {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+@media (max-width: 480px) {
+  .weekly-habit-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .weekly-days {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

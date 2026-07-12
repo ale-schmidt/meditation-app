@@ -138,6 +138,28 @@ const translations = {
     thEmail: "Email",
     thRole: "Rol",
     thActions: "Acciones",
+    adminHabitsMenu: "Habit Tracker 📋",
+    adminHabitsTitle: "Seguimiento de Hábitos",
+    adminHabitsSubtitle: "Control diario de actividades y productividad",
+    habitLogTitle: "Registrar Actividad",
+    labelHabitName: "Seleccionar Hábito",
+    habitMeds: "💊 Toma de Medicamentos",
+    habitSupps: "🥤 Suplementos",
+    habitWorkout: "💪 Entrenar / Gimnasio",
+    habitReading: "📚 Leer libros",
+    habitCustom: "🎲 Otro (Personalizado)...",
+    labelHabitDate: "Fecha",
+    labelCustomHabitName: "Nombre del hábito personalizado",
+    labelHabitNotes: "Notas / Detalles",
+    btnLogHabit: "Registrar Actividad",
+    habitWeeklyTitle: "Progreso Semanal",
+    habitStreaksTitle: "Rachas de Días",
+    habitHeatmapTitle: "Calendario de Actividad",
+    habitHistoryTitle: "Historial de Registros",
+    habitLoggedSuccess: "✅ ¡Actividad registrada con éxito!",
+    habitDeleteConfirm: "¿Estás seguro de que quieres eliminar este registro de hábito?",
+    habitDeletedSuccess: "✅ Registro de hábito eliminado con éxito",
+    streakDayFormat: (days) => `${days} ${days === 1 ? 'día' : 'días'}`,
   },
   en: {
     title: "Meditation Session",
@@ -271,6 +293,28 @@ const translations = {
     thEmail: "Email",
     thRole: "Role",
     thActions: "Actions",
+    adminHabitsMenu: "Habit Tracker 📋",
+    adminHabitsTitle: "Habit Tracker",
+    adminHabitsSubtitle: "Daily compliance and productivity logs",
+    habitLogTitle: "Log Daily Activity",
+    labelHabitName: "Select Habit",
+    habitMeds: "💊 Medications",
+    habitSupps: "🥤 Supplements",
+    habitWorkout: "💪 Workout / Gym",
+    habitReading: "📚 Book Reading",
+    habitCustom: "🎲 Custom Habit...",
+    labelHabitDate: "Date",
+    labelCustomHabitName: "Custom habit name",
+    labelHabitNotes: "Notes / Details",
+    btnLogHabit: "Log Activity",
+    habitWeeklyTitle: "Weekly Progress",
+    habitStreaksTitle: "Daily Streaks",
+    habitHeatmapTitle: "Activity Calendar",
+    habitHistoryTitle: "Activity Log History",
+    habitLoggedSuccess: "✅ Activity logged successfully!",
+    habitDeleteConfirm: "Are you sure you want to delete this habit log?",
+    habitDeletedSuccess: "✅ Habit log deleted successfully",
+    streakDayFormat: (days) => `${days} ${days === 1 ? 'day' : 'days'}`,
   },
 };
 
@@ -337,6 +381,8 @@ const customConfirmMessage = document.getElementById("custom-confirm-message");
 // Elementos admin settings
 const btnAdminSettingsTrigger = document.getElementById("btn-admin-settings-trigger");
 const dividerAdminSettings = document.getElementById("divider-admin-settings");
+const btnAdminHabitsTrigger = document.getElementById("btn-admin-habits-trigger");
+const dividerAdminHabits = document.getElementById("divider-admin-habits");
 const formAdminSettings = document.getElementById("form-admin-settings");
 const adminEmailUser = document.getElementById("admin-email-user");
 const adminEmailPass = document.getElementById("admin-email-pass");
@@ -346,6 +392,24 @@ const adminSettingsSuccess = document.getElementById("admin-settings-success");
 // Secciones (Vistas SPA)
 const sectionHome = document.getElementById("section-home");
 const sectionStats = document.getElementById("section-stats");
+const sectionAdminHabits = document.getElementById("section-admin-habits");
+
+// Elementos de Hábitos
+const formLogHabit = document.getElementById("form-log-habit");
+const habitSelect = document.getElementById("habit-select");
+const habitDate = document.getElementById("habit-date");
+const habitCustomWrap = document.getElementById("habit-custom-wrap");
+const habitCustomName = document.getElementById("habit-custom-name");
+const habitNotes = document.getElementById("habit-notes");
+const habitsWeeklyContainer = document.getElementById("habits-weekly-container");
+const habitsStreaksContainer = document.getElementById("habits-streaks-container");
+const habitHeatmapFilter = document.getElementById("habit-heatmap-filter");
+const monthlyHabitHeatmapContainer = document.getElementById("monthly-habit-heatmap-container");
+const calendarHabitMonthYearLabel = document.getElementById("calendar-habit-month-year-label");
+const btnHabitPrevMonth = document.getElementById("btn-habit-prev-month");
+const btnHabitNextMonth = document.getElementById("btn-habit-next-month");
+const habitsHistoryList = document.getElementById("habits-history-list");
+const btnHabitsToHome = document.getElementById("btn-habits-to-home");
 const homeHeader = document.querySelector("#section-home header");
 const controlsCard = document.querySelector(".controls-card");
 const previewCard = document.querySelector(".preview-card");
@@ -371,6 +435,12 @@ let currentMeditations = [];
 let currentCalMonth = new Date().getMonth();
 let currentCalYear = new Date().getFullYear();
 let currentYearlyChartYear = new Date().getFullYear();
+
+// Estado de Hábitos
+let currentHabits = [];
+let currentHabitCalMonth = new Date().getMonth();
+let currentHabitCalYear = new Date().getFullYear();
+let habitIdToDelete = null;
 
 // ════════════════════════════════════════════════
 // IDIOMA
@@ -462,6 +532,11 @@ function updateLanguage() {
   // Si la configuración de administrador está abierta, actualizar la tabla
   if (modalAdminSettings && !modalAdminSettings.classList.contains("hidden")) {
     loadAndRenderAdminUsers();
+  }
+
+  // Si la sección de hábitos del administrador está activa, re-renderizar
+  if (sectionAdminHabits && !sectionAdminHabits.classList.contains("hidden")) {
+    loadAndRenderHabits();
   }
 }
 
@@ -1031,9 +1106,13 @@ function setLoggedIn(user) {
   if (user.is_admin === 1) {
     btnAdminSettingsTrigger?.classList.remove("hidden");
     dividerAdminSettings?.classList.remove("hidden");
+    btnAdminHabitsTrigger?.classList.remove("hidden");
+    dividerAdminHabits?.classList.remove("hidden");
   } else {
     btnAdminSettingsTrigger?.classList.add("hidden");
     dividerAdminSettings?.classList.add("hidden");
+    btnAdminHabitsTrigger?.classList.add("hidden");
+    dividerAdminHabits?.classList.add("hidden");
   }
 }
 
@@ -1046,6 +1125,8 @@ function setLoggedOut() {
   navToggleStats?.classList.add("hidden");
   btnAdminSettingsTrigger?.classList.add("hidden");
   dividerAdminSettings?.classList.add("hidden");
+  btnAdminHabitsTrigger?.classList.add("hidden");
+  dividerAdminHabits?.classList.add("hidden");
   switchMainView("home"); // Forzar regreso al Inicio si estaba en estadísticas
 }
 
@@ -2042,11 +2123,17 @@ function updateNavToggleText() {
 function switchMainView(viewName) {
   if (viewName === "stats") {
     sectionHome?.classList.add("hidden");
+    sectionAdminHabits?.classList.add("hidden");
     sectionStats?.classList.remove("hidden");
     switchStatsView("list"); // Resetear vistas internas de stats
     loadAndRenderStats();
+  } else if (viewName === "habits") {
+    sectionHome?.classList.add("hidden");
+    sectionStats?.classList.add("hidden");
+    sectionAdminHabits?.classList.remove("hidden");
   } else {
     sectionStats?.classList.add("hidden");
+    sectionAdminHabits?.classList.add("hidden");
     sectionHome?.classList.remove("hidden");
   }
   updateNavToggleText();
@@ -2413,6 +2500,490 @@ pauseBtn?.addEventListener("click", pauseSession);
 // ════════════════════════════════════════════════
 // INICIALIZACIÓN
 // ════════════════════════════════════════════════
+updateLanguage();
+updateDisplay(currentSeconds);
+checkSession(); // Verifica si hay sesión activa al cargar
+
+// ════════════════════════════════════════════════
+// SECCIÓN: HABIT TRACKER (ADMIN ONLY)
+// ════════════════════════════════════════════════
+
+// Cargar y Renderizar todos los hábitos y dashboards
+async function loadAndRenderHabits() {
+  if (!currentUser || currentUser.is_admin !== 1) return;
+
+  try {
+    const res = await fetch("/api/admin/habits", { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch habits");
+
+    const data = await res.json();
+    currentHabits = data.habits || [];
+
+    renderWeeklyComplianceGrid();
+    renderHabitStreaks();
+    populateHabitHeatmapFilter();
+    renderHabitHeatmap();
+    renderHabitHistoryList();
+  } catch (err) {
+    console.error("Error al cargar hábitos:", err);
+  }
+}
+
+// Renderizar la grilla de cumplimiento semanal
+function renderWeeklyComplianceGrid() {
+  if (!habitsWeeklyContainer) return;
+  habitsWeeklyContainer.innerHTML = "";
+
+  const standardHabits = ["Medicamentos", "Suplementos", "Entrenar", "Leer"];
+  const uniqueHabits = [...new Set(currentHabits.map(h => h.habit_name))];
+  const allHabits = [...new Set([...standardHabits, ...uniqueHabits])];
+
+  const today = new Date();
+  const currentDayOfWeek = today.getDay(); // 0 = Domingo, 1 = Lunes
+  const offsetToMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - offsetToMonday);
+  monday.setHours(0, 0, 0, 0);
+
+  const daysOfThisWeek = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    daysOfThisWeek.push(d);
+  }
+
+  const weekDayLabelsEs = ["L", "M", "M", "J", "V", "S", "D"];
+  const weekDayLabelsEn = ["M", "T", "W", "T", "F", "S", "S"];
+  const dayLabels = currentLang === "es" ? weekDayLabelsEs : weekDayLabelsEn;
+
+  allHabits.forEach((habitName) => {
+    const row = document.createElement("div");
+    row.className = "weekly-habit-row";
+
+    const nameLabel = document.createElement("span");
+    nameLabel.className = "weekly-habit-name";
+    nameLabel.textContent = getTranslatedHabitName(habitName);
+    row.appendChild(nameLabel);
+
+    const daysWrap = document.createElement("div");
+    daysWrap.className = "weekly-days";
+
+    daysOfThisWeek.forEach((day, index) => {
+      const dot = document.createElement("div");
+      dot.className = "weekly-day-dot";
+      dot.textContent = dayLabels[index];
+
+      const isCompleted = currentHabits.some(h => 
+        h.habit_name === habitName && 
+        new Date(h.completed_at).toDateString() === day.toDateString()
+      );
+
+      const isToday = day.toDateString() === today.toDateString();
+
+      if (isCompleted) dot.classList.add("completed");
+      if (isToday) dot.classList.add("today");
+
+      daysWrap.appendChild(dot);
+    });
+
+    row.appendChild(daysWrap);
+    habitsWeeklyContainer.appendChild(row);
+  });
+}
+
+// Renderizar las rachas activas e históricas
+function renderHabitStreaks() {
+  if (!habitsStreaksContainer) return;
+  habitsStreaksContainer.innerHTML = "";
+
+  const standardHabits = ["Medicamentos", "Suplementos", "Entrenar", "Leer"];
+  const uniqueHabits = [...new Set(currentHabits.map(h => h.habit_name))];
+  const allHabits = [...new Set([...standardHabits, ...uniqueHabits])];
+
+  const t = translations[currentLang];
+
+  allHabits.forEach((habitName) => {
+    const { current, best } = calculateHabitStreak(habitName);
+
+    const item = document.createElement("div");
+    item.className = "streak-item";
+
+    const iconMap = {
+      "Medicamentos": "💊",
+      "Suplementos": "🥤",
+      "Entrenar": "💪",
+      "Leer": "📚"
+    };
+    const icon = iconMap[habitName] || "🎲";
+
+    item.innerHTML = `
+      <div class="streak-info-left">
+        <div class="streak-icon-wrap">${icon}</div>
+        <div class="streak-habit-name">${getTranslatedHabitName(habitName)}</div>
+      </div>
+      <div class="streak-numbers">
+        <div class="streak-number-card">
+          <span class="streak-number-val">${t.streakDayFormat(current)}</span>
+          <span class="streak-number-label">${currentLang === "es" ? "Actual" : "Current"}</span>
+        </div>
+        <div class="streak-number-card">
+          <span class="streak-number-val" style="color: var(--blue);">${t.streakDayFormat(best)}</span>
+          <span class="streak-number-label">${currentLang === "es" ? "Mejor" : "Best"}</span>
+        </div>
+      </div>
+    `;
+
+    habitsStreaksContainer.appendChild(item);
+  });
+}
+
+// Helper para calcular rachas
+function calculateHabitStreak(habitName) {
+  const dates = [...new Set(
+    currentHabits
+      .filter(h => h.habit_name === habitName)
+      .map(h => new Date(h.completed_at).toDateString())
+  )].map(d => new Date(d));
+
+  if (dates.length === 0) return { current: 0, best: 0 };
+
+  // Ordenar ascendente para la racha histórica
+  dates.sort((a, b) => a - b);
+
+  let best = 0;
+  let current = 0;
+  let tempStreak = 1;
+
+  for (let i = 1; i < dates.length; i++) {
+    const diffTime = Math.abs(dates[i] - dates[i-1]);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      tempStreak++;
+    } else if (diffDays > 1) {
+      if (tempStreak > best) best = tempStreak;
+      tempStreak = 1;
+    }
+  }
+  if (tempStreak > best) best = tempStreak;
+
+  // Ordenar descendente (más nuevo primero) para racha actual
+  dates.sort((a, b) => b - a);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  const newestDate = new Date(dates[0]);
+  newestDate.setHours(0, 0, 0, 0);
+
+  const hasToday = dates.some(d => d.toDateString() === today.toDateString());
+  const hasYesterday = dates.some(d => d.toDateString() === yesterday.toDateString());
+
+  if (hasToday || hasYesterday) {
+    current = 1;
+    let checkDate = new Date(newestDate);
+
+    for (let i = 1; i < dates.length; i++) {
+      const prevDate = new Date(checkDate);
+      prevDate.setDate(checkDate.getDate() - 1);
+
+      if (dates.some(d => d.toDateString() === prevDate.toDateString())) {
+        current++;
+        checkDate = prevDate;
+      } else {
+        break;
+      }
+    }
+  } else {
+    current = 0;
+  }
+
+  if (current > best) best = current;
+
+  return { current, best };
+}
+
+// Poblar selector del heatmap de hábitos
+function populateHabitHeatmapFilter() {
+  if (!habitHeatmapFilter) return;
+
+  const currentSel = habitHeatmapFilter.value;
+  habitHeatmapFilter.innerHTML = "";
+
+  const standardHabits = ["Medicamentos", "Suplementos", "Entrenar", "Leer"];
+  const uniqueHabits = [...new Set(currentHabits.map(h => h.habit_name))];
+  const allHabits = [...new Set([...standardHabits, ...uniqueHabits])];
+
+  allHabits.forEach((habitName) => {
+    const opt = document.createElement("option");
+    opt.value = habitName;
+    opt.textContent = getTranslatedHabitName(habitName);
+    if (habitName === currentSel) opt.selected = true;
+    habitHeatmapFilter.appendChild(opt);
+  });
+}
+
+// Renderizar el Heatmap mensual para el hábito seleccionado
+function renderHabitHeatmap() {
+  if (!monthlyHabitHeatmapContainer || !calendarHabitMonthYearLabel) return;
+  monthlyHabitHeatmapContainer.innerHTML = "";
+
+  const monthNamesEs = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthNames = currentLang === "es" ? monthNamesEs : monthNamesEn;
+  calendarHabitMonthYearLabel.textContent = `${monthNames[currentHabitCalMonth]} ${currentHabitCalYear}`;
+
+  const selectedHabit = habitHeatmapFilter.value;
+  if (!selectedHabit) return;
+
+  const totalDays = new Date(currentHabitCalYear, currentHabitCalMonth + 1, 0).getDate();
+  const firstDayIndex = new Date(currentHabitCalYear, currentHabitCalMonth, 1).getDay();
+  const startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+
+  const dayMap = new Set();
+  currentHabits
+    .filter(h => h.habit_name === selectedHabit)
+    .forEach((h) => {
+      const d = new Date(h.completed_at);
+      if (d.getFullYear() === currentHabitCalYear && d.getMonth() === currentHabitCalMonth) {
+        dayMap.add(getLocalDateStr(d));
+      }
+    });
+
+  const weekdaysEs = ["L", "M", "M", "J", "V", "S", "D"];
+  const weekdaysEn = ["M", "T", "W", "T", "F", "S", "S"];
+  const weekdays = currentLang === "es" ? weekdaysEs : weekdaysEn;
+
+  const headerDiv = document.createElement("div");
+  headerDiv.className = "calendar-header-row";
+  weekdays.forEach((day) => {
+    const dDiv = document.createElement("div");
+    dDiv.className = "calendar-day-header";
+    dDiv.textContent = day;
+    headerDiv.appendChild(dDiv);
+  });
+  monthlyHabitHeatmapContainer.appendChild(headerDiv);
+
+  const gridDiv = document.createElement("div");
+  gridDiv.className = "calendar-grid";
+
+  for (let i = 0; i < startOffset; i++) {
+    const emptyCell = document.createElement("div");
+    emptyCell.className = "heatmap-cell empty";
+    gridDiv.appendChild(emptyCell);
+  }
+
+  const today = new Date();
+  for (let i = 1; i <= totalDays; i++) {
+    const cell = document.createElement("div");
+    cell.className = "heatmap-cell day-active";
+    cell.textContent = i;
+
+    const cellDate = new Date(currentHabitCalYear, currentHabitCalMonth, i);
+    const dateKey = getLocalDateStr(cellDate);
+
+    const isToday = cellDate.toDateString() === today.toDateString();
+    if (isToday) cell.classList.add("today");
+
+    if (dayMap.has(dateKey)) {
+      cell.classList.add("level-4");
+    }
+
+    gridDiv.appendChild(cell);
+  }
+
+  monthlyHabitHeatmapContainer.appendChild(gridDiv);
+}
+
+// Historial Reciente de Hábitos
+function renderHabitHistoryList() {
+  if (!habitsHistoryList) return;
+  habitsHistoryList.innerHTML = "";
+
+  if (currentHabits.length === 0) {
+    habitsHistoryList.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">${
+      currentLang === "es" ? "Aún no hay hábitos registrados." : "No habit logs found."
+    }</div>`;
+    return;
+  }
+
+  currentHabits.forEach((h) => {
+    const d = new Date(h.completed_at);
+    const dateStr = d.toLocaleDateString(currentLang === "es" ? "es-AR" : "en-US", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+    const timeStr = d.toLocaleTimeString(currentLang === "es" ? "es-AR" : "en-US", {
+      hour: "2-digit", minute: "2-digit"
+    });
+
+    const entry = document.createElement("div");
+    entry.className = "meditation-entry";
+
+    const noteMarkup = h.notes ? `<span style="display: block; font-size: 0.85rem; color: var(--text-muted); font-style: italic; margin-top: 4px;">📝 ${h.notes}</span>` : "";
+
+    entry.innerHTML = `
+      <div class="med-info">
+        <span class="med-icon">📋</span>
+        <span class="med-date"><strong>${getTranslatedHabitName(h.habit_name)}</strong></span>
+        <span class="med-time">${dateStr} - ${timeStr}</span>
+        ${noteMarkup}
+      </div>
+      <button class="btn-delete-entry" data-id="${h.id}" title="${currentLang === 'es' ? 'Eliminar registro' : 'Delete log'}">🗑️</button>
+    `;
+
+    entry.querySelector(".btn-delete-entry").addEventListener("click", async () => {
+      const confirmMsg = translations[currentLang].habitDeleteConfirm;
+      const hasConfirmed = await showCustomConfirm(
+        translations[currentLang].modalConfirmTitle,
+        confirmMsg
+      );
+      if (!hasConfirmed) return;
+
+      try {
+        const delRes = await fetch(`/api/admin/habits/${h.id}`, {
+          method: "DELETE",
+          credentials: "include"
+        });
+
+        if (delRes.ok) {
+          await showCustomAlert(
+            translations[currentLang].modalAlertTitle,
+            translations[currentLang].habitDeletedSuccess
+          );
+          loadAndRenderHabits();
+        } else {
+          const errData = await delRes.json();
+          await showCustomAlert(translations[currentLang].modalAlertTitle, errData.error || "Error");
+        }
+      } catch (err) {
+        console.error("Error al borrar hábito:", err);
+      }
+    });
+
+    habitsHistoryList.appendChild(entry);
+  });
+}
+
+// Helper para traducir el nombre del hábito
+function getTranslatedHabitName(name) {
+  const map = {
+    "Medicamentos": currentLang === "es" ? "💊 Toma de Medicamentos" : "💊 Medications",
+    "Suplementos": currentLang === "es" ? "🥤 Suplementos" : "🥤 Supplements",
+    "Entrenar": currentLang === "es" ? "💪 Entrenar" : "💪 Workout / Gym",
+    "Leer": currentLang === "es" ? "📚 Leer libros" : "📚 Book Reading"
+  };
+  return map[name] || name;
+}
+
+// Listener para dropdown habit select
+habitSelect?.addEventListener("change", () => {
+  if (habitSelect.value === "custom") {
+    habitCustomWrap.classList.remove("hidden");
+    habitCustomName.required = true;
+  } else {
+    habitCustomWrap.classList.add("hidden");
+    habitCustomName.required = false;
+    habitCustomName.value = "";
+  }
+});
+
+// Registrar Actividad
+formLogHabit?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  let habit_name = habitSelect.value;
+  if (habit_name === "custom") {
+    habit_name = habitCustomName.value.trim();
+  }
+
+  const notes = habitNotes.value.trim();
+  const completed_at = habitDate.value;
+
+  if (!habit_name) {
+    await showCustomAlert(
+      translations[currentLang].modalAlertTitle,
+      translations[currentLang].errorAllFieldsRequired
+    );
+    return;
+  }
+
+  const submitBtn = document.getElementById("btn-log-habit-submit");
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch("/api/admin/habits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ habit_name, notes, completed_at }),
+      credentials: "include"
+    });
+
+    if (res.ok) {
+      await showCustomAlert(
+        translations[currentLang].modalAlertTitle,
+        translations[currentLang].habitLoggedSuccess
+      );
+      formLogHabit.reset();
+      habitCustomWrap.classList.add("hidden");
+      habitCustomName.required = false;
+      
+      const localToday = new Date().toLocaleDateString('en-CA');
+      habitDate.value = localToday;
+
+      loadAndRenderHabits();
+    } else {
+      const errData = await res.json();
+      await showCustomAlert(translations[currentLang].modalAlertTitle, errData.error || "Error");
+    }
+  } catch (err) {
+    console.error("Error al registrar hábito:", err);
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+// Botón de redirección del dropdown de administración
+btnAdminHabitsTrigger?.addEventListener("click", () => {
+  userDropdown.classList.add("hidden");
+  userMenuBtn.classList.remove("open");
+
+  const localToday = new Date().toLocaleDateString('en-CA');
+  if (habitDate) habitDate.value = localToday;
+
+  loadAndRenderHabits();
+  switchMainView("habits");
+});
+
+// Botón volver a inicio
+btnHabitsToHome?.addEventListener("click", () => {
+  switchMainView("home");
+});
+
+// Navegación calendario heatmap de hábitos
+btnHabitPrevMonth?.addEventListener("click", () => {
+  currentHabitCalMonth--;
+  if (currentHabitCalMonth < 0) {
+    currentHabitCalMonth = 11;
+    currentHabitCalYear--;
+  }
+  renderHabitHeatmap();
+});
+
+btnHabitNextMonth?.addEventListener("click", () => {
+  currentHabitCalMonth++;
+  if (currentHabitCalMonth > 11) {
+    currentHabitCalMonth = 0;
+    currentHabitCalYear++;
+  }
+  renderHabitHeatmap();
+});
+
+habitHeatmapFilter?.addEventListener("change", () => {
+  renderHabitHeatmap();
+});
+
 updateLanguage();
 updateDisplay(currentSeconds);
 checkSession(); // Verifica si hay sesión activa al cargar
