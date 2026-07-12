@@ -28,14 +28,14 @@ async function sendVerificationEmail(email, fullName, code, lang = 'es') {
 
   const isEs = lang === 'es';
   const subject = isEs ? 'Tu código de verificación - Meditación App' : 'Your verification code - Meditation App';
-  const welcomeText = isEs 
-    ? `Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:` 
+  const welcomeText = isEs
+    ? `Hola, <strong>${fullName}</strong>. Aquí está tu código de verificación:`
     : `Hello, <strong>${fullName}</strong>. Here is your verification code:`;
-  const expiryText = isEs 
-    ? `⏳ Este código expira en <strong>5 minutos</strong>.` 
+  const expiryText = isEs
+    ? `⏳ Este código expira en <strong>5 minutos</strong>.`
     : `⏳ This code expires in <strong>5 minutes</strong>.`;
-  const ignoreText = isEs 
-    ? `Si no solicitaste este código, puedes ignorar este correo.` 
+  const ignoreText = isEs
+    ? `Si no solicitaste este código, puedes ignorar este correo.`
     : `If you did not request this code, you can ignore this email.`;
 
   if (resendApiKey) {
@@ -72,7 +72,7 @@ async function sendVerificationEmail(email, fullName, code, lang = 'es') {
   }
 
   const config = await getEmailConfig();
-  
+
   // Si no hay credenciales de email configuradas, imprimir en consola (modo desarrollo)
   if (!config.EMAIL_USER || !config.EMAIL_PASS) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -96,7 +96,7 @@ async function sendVerificationEmail(email, fullName, code, lang = 'es') {
     socketTimeout: 10000,
   });
 
-  const textContent = isEs 
+  const textContent = isEs
     ? `Hola, ${fullName}.\n\nTu código de verificación es: ${code}\n\nEste código expira en 5 minutos.`
     : `Hello, ${fullName}.\n\nYour verification code is: ${code}\n\nThis code expires in 5 minutes.`;
 
@@ -576,7 +576,7 @@ async function sendReportToUser(user, callback) {
       }
 
       const today = new Date();
-      
+
       // Lunes de la semana actual
       const currentDayOfWeek = today.getDay();
       const daysOffset = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
@@ -677,7 +677,7 @@ async function sendReportToUser(user, callback) {
           </div>
 
           <p style="text-align: center; color: #a78bfa; font-size: 16px; font-style: italic; margin: 0 0 24px;">
-            ${lang === 'es' ? '¡Seguí así! Cada minuto cuenta sigue practicando. 🧘' : 'Keep it up! Every minute counts keep practicing. 🧘'}
+            ${lang === 'es' ? '¡Seguí así! Cada minuto cuenta, sigue practicando. 🧘' : 'Keep it up! Every minute counts, keep practicing. 🧘'}
           </p>
 
           <hr style="border: 0; border-top: 1px solid #1e293b; margin: 24px 0 16px;">
