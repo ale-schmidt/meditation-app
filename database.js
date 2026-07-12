@@ -178,6 +178,32 @@ db.serialize(() => {
     )
   `);
 
+  // Tabla de tipos de hábitos del administrador
+  db.run(`
+    CREATE TABLE IF NOT EXISTS admin_habit_types (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      habit_name TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE (user_id, habit_name)
+    )
+  `, () => {
+    db.get("SELECT id FROM users WHERE email = 'alemusho@gmail.com'", [], (err, row) => {
+      if (!err && row) {
+        const adminId = row.id;
+        db.get("SELECT COUNT(*) as count FROM admin_habit_types WHERE user_id = ?", [adminId], (countErr, countRow) => {
+          if (!countErr && countRow && parseInt(countRow.count) === 0) {
+            const defaults = ['Medicamentos', 'Suplementos', 'Entrenar', 'Leer'];
+            defaults.forEach(habit => {
+              db.run("INSERT INTO admin_habit_types (user_id, habit_name) VALUES (?, ?) ON CONFLICT DO NOTHING", [adminId, habit]);
+            });
+          }
+        });
+      }
+    });
+  });
+
   console.log('✅ Tablas verificadas/creadas correctamente en PostgreSQL.');
 });
 

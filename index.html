@@ -608,19 +608,37 @@
 
     <!-- 1. Formulario de registro rápido -->
     <div class="card" style="margin-bottom: 32px;">
-      <h3 style="color: var(--purple-light); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-        📝 <span data-i18n="habitLogTitle">Registrar Actividad</span>
-      </h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="color: var(--purple-light); display: flex; align-items: center; gap: 8px; margin: 0;">
+          📝 <span data-i18n="habitLogTitle">Registrar Actividad</span>
+        </h3>
+        <button id="btn-toggle-habit-manager" class="btn-nav" style="margin: 0; font-size: 0.85rem; padding: 6px 12px;">
+          ⚙️ <span data-i18n="btnManageHabits">Gestionar Hábitos</span>
+        </button>
+      </div>
+
+      <!-- Panel de gestión de tipos de hábitos (CRUD) - Oculto por defecto -->
+      <div id="habit-manager-panel" class="hidden" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+        <h4 style="margin-top: 0; color: var(--text); margin-bottom: 12px;" data-i18n="habitManagerTitle">Mis Hábitos Personalizados</h4>
+        
+        <!-- Formulario para agregar -->
+        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+          <input type="text" id="input-new-habit-type" placeholder="Nuevo hábito..." style="flex: 1; margin: 0;" />
+          <button id="btn-add-habit-type" class="btn-modal-primary" style="margin: 0; padding: 0 16px; min-width: auto;">➕</button>
+        </div>
+
+        <!-- Lista de hábitos -->
+        <div id="habit-types-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
+          <!-- Generado dinámicamente -->
+        </div>
+      </div>
+
       <form id="form-log-habit" novalidate style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         <!-- Hábito -->
         <div class="form-group" style="grid-column: span 1;">
           <label for="habit-select" data-i18n="labelHabitName">Seleccionar Hábito</label>
           <select id="habit-select" required>
-            <option value="Medicamentos" data-i18n="habitMeds">💊 Toma de Medicamentos</option>
-            <option value="Suplementos" data-i18n="habitSupps">🥤 Suplementos</option>
-            <option value="Entrenar" data-i18n="habitWorkout">💪 Entrenar / Gimnasio</option>
-            <option value="Leer" data-i18n="habitReading">📚 Leer libros</option>
-            <option value="custom" data-i18n="habitCustom">🎲 Otro (Personalizado)...</option>
+            <!-- Cargado dinámicamente -->
           </select>
         </div>
 
@@ -628,12 +646,6 @@
         <div class="form-group" style="grid-column: span 1;">
           <label for="habit-date" data-i18n="labelHabitDate">Fecha</label>
           <input type="date" id="habit-date" required />
-        </div>
-
-        <!-- Nombre personalizado (si elige custom) -->
-        <div id="habit-custom-wrap" class="form-group hidden" style="grid-column: span 2;">
-          <label for="habit-custom-name" data-i18n="labelCustomHabitName">Nombre del hábito personalizado</label>
-          <input type="text" id="habit-custom-name" placeholder="Escribe tu hábito aquí..." />
         </div>
 
         <!-- Notas/Detalles -->
@@ -648,55 +660,17 @@
       </form>
     </div>
 
-    <!-- 2. Dashboard de Estadísticas de Hábitos -->
-    <div class="habit-dashboard" style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px; margin-bottom: 32px;">
-      
-      <!-- Panel de Cumplimiento Semanal -->
-      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-        <h3 style="color: var(--purple-light); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-          📅 <span data-i18n="habitWeeklyTitle">Progreso Semanal</span>
-        </h3>
-        <div id="habits-weekly-container" class="weekly-compliance-grid">
-          <!-- Generado dinámicamente: lista de hábitos con checks para Lun-Dom -->
-        </div>
-      </div>
-
-      <!-- Panel de Rachas Activas (Streaks) -->
-      <div class="card">
-        <h3 style="color: var(--purple-light); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-          🔥 <span data-i18n="habitStreaksTitle">Rachas de Días</span>
-        </h3>
-        <div id="habits-streaks-container" class="streaks-list" style="display: flex; flex-direction: column; gap: 16px;">
-          <!-- Generado dinámicamente -->
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Calendario Heatmap de Hábitos -->
+    <!-- 2. Dashboard de Cumplimiento Semanal -->
     <div class="card" style="margin-bottom: 32px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="color: var(--purple-light); display: flex; align-items: center; gap: 8px; margin: 0;">
-          📊 <span data-i18n="habitHeatmapTitle">Calendario de Actividad</span>
-        </h3>
-        <!-- Selector de hábito para el calendario -->
-        <select id="habit-heatmap-filter" style="width: auto; padding: 6px 12px; border-radius: 16px; margin: 0; background: var(--bg-card); border: 1px solid var(--border); color: var(--text);">
-          <!-- Opciones agregadas dinámicamente -->
-        </select>
-      </div>
-
-      <!-- Navegación del heatmap -->
-      <div class="calendar-nav-header" style="margin-bottom: 16px;">
-        <button id="btn-habit-prev-month" class="btn-cal-arrow">◀</button>
-        <h4 id="calendar-habit-month-year-label" class="calendar-month-year-label">-</h4>
-        <button id="btn-habit-next-month" class="btn-cal-arrow">▶</button>
-      </div>
-
-      <div class="monthly-heatmap-calendar" id="monthly-habit-heatmap-container">
-        <!-- Generado dinámicamente -->
+      <h3 style="color: var(--purple-light); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        📅 <span data-i18n="habitWeeklyTitle">Progreso Semanal</span>
+      </h3>
+      <div id="habits-weekly-container" class="weekly-compliance-grid">
+        <!-- Generado dinámicamente: lista de hábitos con checks para Lun-Dom -->
       </div>
     </div>
 
-    <!-- 4. Historial Reciente -->
+    <!-- 3. Historial Reciente -->
     <div class="card">
       <h3 style="color: var(--purple-light); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
         📋 <span data-i18n="habitHistoryTitle">Historial de Registros</span>

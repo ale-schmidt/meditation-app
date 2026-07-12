@@ -1518,65 +1518,48 @@ footer { text-align: center; margin-top: 12px; }
   border-color: var(--purple-light);
   color: var(--purple-light);
 }
-
-.streaks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.streak-item {
+.habit-type-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
-  background: rgba(167, 139, 250, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
-.streak-info-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.habit-type-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(167, 139, 250, 0.3);
 }
-.streak-icon-wrap {
-  font-size: 20px;
-}
-.streak-habit-name {
-  font-weight: 600;
+.habit-type-text {
+  font-weight: 500;
   color: var(--text);
+  flex: 1;
+}
+.habit-type-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-habit-type-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
   font-size: 14px;
-}
-.streak-numbers {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.streak-number-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 48px;
-}
-.streak-number-val {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--purple-light);
-}
-.streak-number-label {
-  font-size: 9px;
-  text-transform: uppercase;
+  border-radius: 6px;
+  transition: all 0.2s;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
-  margin-top: 2px;
+}
+.btn-habit-type-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+.btn-habit-type-action.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
 }
 
-/* Responsividad para dashboard de hábitos */
-@media (max-width: 768px) {
-  .habit-dashboard {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-  }
-}
 @media (max-width: 480px) {
   .weekly-habit-row {
     flex-direction: column;

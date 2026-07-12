@@ -553,6 +553,116 @@ app.delete('/api/admin/habits/:id', adminMiddleware, (req, res) => {
   });
 });
 
+// GET /api/admin/habit-types → Obtiene todos los tipos de hábitos del administrador logueado
+app.get('/api/admin/habit-types', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  db.all(
+    'SELECT * FROM admin_habit_types WHERE user_id = ? ORDER BY habit_name ASC',
+    [userId],
+    (err, rows) => {
+      if (err) {
+        console.error('[Admin Habit Types GET] Error:', err);
+        return res.status(500).json({ error: 'Error al obtener los tipos de hábitos' });
+      }
+      res.json({ habitTypes: rows });
+    }
+  );
+});
+
+// POST /api/admin/habit-types → Agrega un nuevo tipo de hábito
+app.post('/api/admin/habit-types', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  const { habit_name } = req.body;
+
+  if (!habit_name || !habit_name.trim()) {
+    return res.status(400).json({ error: 'El nombre del hábito es requerido' });
+  }
+
+  const trimmedName = habit_name.trim();
+
+  db.run(
+    'INSERT INTO admin_habit_types (user_id, habit_name) VALUES (?, ?)',
+    [userId, trimmedName],
+    function (err) {
+      if (err) {
+        console.error('[Admin Habit Types POST] Error:', err);
+        if (err.message.includes('UNIQUE')) {
+          return res.status(409).json({ error: 'Este hábito ya existe' });
+        }
+        return res.status(500).json({ error: 'Error al agregar el tipo de hábito' });
+      }
+      res.json({
+        success: true,
+        habitType: { id: this.lastID, user_id: userId, habit_name: trimmedName }
+      });
+    }
+  );
+});
+
+// PUT /api/admin/habit-types/:id → Edita un tipo de hábito existente
+app.put('/api/admin/habit-types/:id', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  const habitTypeId = req.params.id;
+  const { habit_name } = req.body;
+
+  if (!habit_name || !habit_name.trim()) {
+    return res.status(400).json({ error: 'El nombre del hábito es requerido' });
+  }
+
+  const trimmedName = habit_name.trim();
+
+  db.get('SELECT user_id, habit_name FROM admin_habit_types WHERE id = ?', [habitTypeId], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Error interno del servidor' });
+    if (!row) return res.status(404).json({ error: 'Hábito no encontrado' });
+    if (row.user_id !== userId) return res.status(403).json({ error: 'Acceso denegado' });
+
+    const oldName = row.habit_name;
+
+    db.run(
+      'UPDATE admin_habit_types SET habit_name = ? WHERE id = ?',
+      [trimmedName, habitTypeId],
+      function (updateErr) {
+        if (updateErr) {
+          console.error('[Admin Habit Types PUT] Error:', updateErr);
+          if (updateErr.message.includes('UNIQUE')) {
+            return res.status(409).json({ error: 'Ya existe un hábito con ese nombre' });
+          }
+          return res.status(500).json({ error: 'Error al actualizar el hábito' });
+        }
+        
+        // Actualizar también el historial registrado con el nuevo nombre
+        db.run(
+          'UPDATE admin_habits SET habit_name = ? WHERE user_id = ? AND habit_name = ?',
+          [trimmedName, userId, oldName],
+          (historyErr) => {
+            if (historyErr) {
+              console.error('[Admin Habits History UPDATE] Error:', historyErr);
+            }
+            res.json({ success: true, message: 'Hábito actualizado correctamente' });
+          }
+        );
+      }
+    );
+  });
+});
+
+// DELETE /api/admin/habit-types/:id → Elimina un tipo de hábito
+app.delete('/api/admin/habit-types/:id', adminMiddleware, (req, res) => {
+  const userId = req.user.id;
+  const habitTypeId = req.params.id;
+
+  db.get('SELECT user_id, habit_name FROM admin_habit_types WHERE id = ?', [habitTypeId], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Error interno del servidor' });
+    if (!row) return res.status(404).json({ error: 'Hábito no encontrado' });
+    if (row.user_id !== userId) return res.status(403).json({ error: 'Acceso denegado' });
+
+    db.run('DELETE FROM admin_habit_types WHERE id = ?', [habitTypeId], (deleteErr) => {
+      if (deleteErr) return res.status(500).json({ error: 'Error al eliminar el hábito' });
+      res.json({ success: true, message: 'Hábito eliminado correctamente' });
+    });
+  });
+});
+
 // ──────────────────────────────────────────────
 // RUTAS DE MEDITACIONES
 // ──────────────────────────────────────────────
